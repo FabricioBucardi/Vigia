@@ -28,7 +28,7 @@
 1. **Fase 1**: Criar dados mockados `src/data/mockReports.json`, `mockBairros.json`, `mockUsers.json` (Seção 3 do planejamento).
 2. **Fase 1 (cont.)**: Instalar dependências de navegação (React Navigation + reanimated + gesture-handler + safe-area-context + screens), configurar babel para reanimated.
 3. **Fase 2**: Desenvolver a `AuthScreen` (Tela 1 das specs — abas Login/Cadastro) e o AuthContext (autenticação mock).
-4. **Decisão pendente**: usuário precisa aprovar commit/push da estrutura criada (ainda untracked, somente commit vazio foi feito).
+4. **PENDÊNCIAS ABERTAS (não bloqueantes)**: (a) 10 vulnerabilidades moderadas do npm audit aguardando análise; (b) arquivo LICENSE removido do template (package.json referencia "0BSD"); (c) identidade git local = Fabricio Bucardi / FabricioBucardi@users.noreply.github.com (usar outro se o usuário preferir).
 
 ## 🧠 5. Contexto Técnico para o Próximo Chat
 - **Stack**: Expo SDK 57, React Native 0.86, React 19, TypeScript 6 (strict), npm.
@@ -37,7 +37,7 @@
 - **Navegação planejada**: React Navigation — `AuthStack` (AuthScreen) → `MainTabs` (Mapa + Perfil). Alternância via estado de autenticação global (AuthContext a criar).
 - **Coordenadas do mapa**: São Caetano do Sul `lat -23.6182, lon -46.5645, delta 0.02`.
 - **Design**: Material Design 3, fundo `#F3F4F6`.
-- **Git**: branch `main`, remote `origin` = `https://github.com/FabricioBucardi/Vigia.git`. Commit vazio `6afb602` criado. Identidade local: Fabricio Bucardi / FabricioBucardi@users.noreply.github.com.
+- **Git**: branch `main`, remote `origin` = `https://github.com/FabricioBucardi/Vigia.git`. Histórico: commit vazio `6afb602` e commit da estrutura `ac32ba5`, já enviados para o remoto via push (`origin/main`). Working tree limpo. Identidade local: Fabricio Bucardi / FabricioBucardi@users.noreply.github.com.
 - **REGRAS IMPORTANTES (reforçadas em AGENTS.md)**:
   - Nenhum commit/push/PR sem aprovação explícita do usuário.
   - Gerar/atualizar `docs/ESTADO_DESENVOLVIMENTO.md` a cada interação que altere o projeto.
