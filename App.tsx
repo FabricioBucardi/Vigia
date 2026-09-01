@@ -4,15 +4,17 @@ import { NavigationContainer } from '@react-navigation/native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
-import RootNavigator from './src/navigation/RootNavigator';
+import AuthStack from './src/navigation/AuthStack';
+import MainTabs from './src/navigation/MainTabs';
 
 function Root() {
   const { user } = useAuth();
-  // Alterna o estado autenticado/não autenticado gerenciando o index do stack.
-  // user === null -> mostra Auth; user !== null -> mostra Main.
+  // Renderização condicional: deslogado mostra AuthStack; logado mostra MainTabs.
+  // A troca condicional desmonta/remonta o navigator, garantindo que o logout
+  // retorne de fato para a tela de Login/Cadastro.
   return (
     <NavigationContainer>
-      <RootNavigator key={user ? 'authed' : 'guest'} initialRouteName={user ? 'Main' : 'Auth'} />
+      {user ? <MainTabs /> : <AuthStack />}
     </NavigationContainer>
   );
 }

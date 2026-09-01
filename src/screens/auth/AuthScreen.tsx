@@ -1,19 +1,24 @@
 import { useState } from 'react';
 import {
-  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated';
 import { useAuth } from '../../context/AuthContext';
 import { COLORS } from '../../styles/colors';
+import FloatingTextInput from '../../components/FloatingTextInput';
+import VigiaLogo from '../../components/VigiaLogo';
+import PrimaryButton from '../../components/PrimaryButton';
 
 type ActiveTab = 'login' | 'register';
 
@@ -30,87 +35,99 @@ function aplicarMascaraData(texto: string): string {
   return partes.join('/');
 }
 
+type ErrosForm = {
+  email?: string;
+  senha?: string;
+  nome?: string;
+  emailCadastro?: string;
+  dataNascimento?: string;
+  senhaCadastro?: string;
+  confirmarSenha?: string;
+};
+
 export default function AuthScreen() {
   const { signIn, signUp } = useAuth();
 
   const [activeTab, setActiveTab] = useState<ActiveTab>('login');
-  const [loading, setLoading] = useState(false);
-  const [erro, setErro] = useState<string | null>(null);
+  const [loadingLogin, setLoadingLogin] = useState(false);
+  const [loadingCadastro, setLoadingCadastro] = useState(false);
 
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
-  const [mostrarSenha, setMostrarSenha] = useState(false);
 
   const [nome, setNome] = useState('');
   const [emailCadastro, setEmailCadastro] = useState('');
   const [dataNascimento, setDataNascimento] = useState('');
   const [senhaCadastro, setSenhaCadastro] = useState('');
   const [confirmarSenha, setConfirmarSenha] = useState('');
-  const [mostrarSenhaCadastro, setMostrarSenhaCadastro] = useState(false);
-  const [mostrarConfirmarSenha, setMostrarConfirmarSenha] = useState(false);
+
+  const [erros, setErros] = useState<ErrosForm>({});
+
+  const virada = useSharedValue(0);
+
+  const faceFrontStyle = useAnimatedStyle(() => ({
+    transform: [{ perspective: 1200 }, { rotateY: `${virada.value}deg` }],
+  }));
+  const faceBackStyle = useAnimatedStyle(() => ({
+    transform: [{ perspective: 1200 }, { rotateY: `${virada.value - 180}deg` }],
+  }));
 
   function trocarAba(aba: ActiveTab) {
     setActiveTab(aba);
-    setErro(null);
+    setErros({});
+    setViradaPara(aba);
+  }
+
+  function setViradaPara(aba: ActiveTab) {
+    virada.value = withTiming(aba === 'login' ? 0 : 180, { duration: 600 });
   }
 
   function validarLogin(): boolean {
-    if (!email.trim() || !senha) {
-      setErro('Preencha e-mail e senha para acessar.');
-      return false;
-    }
-    if (!EMAIL_REGEX.test(email)) {
-      setErro('Informe um e-mail válido.');
-      return false;
-    }
-    return true;
+    const novos: ErrosForm = {};
+    if (!email.trim()) novos.email = 'Informe seu e-mail.';
+    else if (!EMAIL_REGEX.test(email)) novos.email = 'Informe um e-mail válido.';
+    if (!senha) novos.senha = 'Informe sua senha.';
+    setErros(novos);
+    return Object.keys(novos).length === 0;
   }
 
   function validarCadastro(): boolean {
-    if (!nome.trim() || !emailCadastro.trim() || !dataNascimento || !senhaCadastro || !confirmarSenha) {
-      setErro('Preencha todos os campos para criar a conta.');
-      return false;
-    }
-    if (!EMAIL_REGEX.test(emailCadastro)) {
-      setErro('Informe um e-mail válido.');
-      return false;
-    }
-    if (!SENHA_REGEX.test(senhaCadastro)) {
-      setErro(
-        'A senha deve ter ao menos 8 caracteres, com letra maiúscula, letra minúscula, número e caractere especial.'
-      );
-      return false;
-    }
-    if (senhaCadastro !== confirmarSenha) {
-      setErro('As senhas não conferem.');
-      return false;
-    }
-    return true;
+    const novos: ErrosForm = {};
+    if (!nome.trim()) novos.nome = 'Informe seu nome completo.';
+    if (!emailCadastro.trim()) novos.emailCadastro = 'Informe seu e-mail.';
+    else if (!EMAIL_REGEX.test(emailCadastro)) novos.emailCadastro = 'Informe um e-mail válido.';
+    if (!dataNascimento) novos.dataNascimento = 'Informe sua data de nascimento.';
+    if (!senhaCadastro) novos.senhaCadastro = 'Crie uma senha.';
+    else if (!SENHA_REGEX.test(senhaCadastro))
+      novos.senhaCadastro =
+        'Mínimo 8 caracteres, com maiúscula, minúscula, número e caractere especial.';
+    if (!confirmarSenha) novos.confirmarSenha = 'Confirme sua senha.';
+    else if (senhaCadastro !== confirmarSenha) novos.confirmarSenha = 'As senhas não conferem.';
+    setErros(novos);
+    return Object.keys(novos).length === 0;
   }
 
   async function handleLogin() {
     if (!validarLogin()) return;
-    setLoading(true);
-    setErro(null);
+    setLoadingLogin(true);
     try {
       await signIn(email, senha);
     } catch {
-      setErro('Não foi possível entrar. Tente novamente.');
+      setErros({ email: 'Não foi possível entrar. Tente novamente.' });
     } finally {
-      setLoading(false);
+      setLoadingLogin(false);
     }
   }
 
   async function handleCadastro() {
     if (!validarCadastro()) return;
-    setLoading(true);
-    setErro(null);
+    setLoadingCadastro(true);
     try {
       await signUp({ nome, email: emailCadastro, senha: senhaCadastro });
     } catch {
-      setErro('Não foi possível criar a conta. Tente novamente.');
+      setErros({ emailCadastro: 'Não foi possível criar a conta. Tente novamente.' });
     } finally {
-      setLoading(false);
+      setLoadingCadastro(false);
     }
   }
 
@@ -118,16 +135,14 @@ export default function AuthScreen() {
     <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView
         style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 16}
       >
         <ScrollView
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
         >
-          <View style={styles.header}>
-            <MaterialCommunityIcons name="shield-home" size={72} color={COLORS.primary} />
-            <Text style={styles.title}>VIGIA</Text>
-          </View>
+          <VigiaLogo />
 
           <View style={styles.tabs}>
             <Pressable
@@ -148,148 +163,101 @@ export default function AuthScreen() {
             </Pressable>
           </View>
 
-          {erro && (
-            <View style={styles.erroBox}>
-              <Text style={styles.erroText}>{erro}</Text>
-            </View>
-          )}
+          <View style={styles.cartao}>
+            {/* Face frontal: Login */}
+            <Animated.View
+              style={[
+                styles.face,
+                faceFrontStyle,
+                activeTab === 'login' && styles.faceAtiva,
+              ]}
+            >
+              <FloatingTextInput
+                label="E-mail"
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoCorrect={false}
+                error={erros.email}
+              />
+              <FloatingTextInput
+                label="Senha"
+                value={senha}
+                onChangeText={setSenha}
+                secureTextEntry
+                showPasswordToggle
+                autoCapitalize="none"
+                error={erros.senha}
+              />
+              <View style={styles.botaoWrapper}>
+                <PrimaryButton title="Acessar" loading={loadingLogin} onPress={handleLogin} />
+              </View>
+            </Animated.View>
 
-          <View style={styles.card}>
-            {activeTab === 'login' ? (
-              <>
-                <Text style={styles.label}>E-mail</Text>
-                <TextInput
-                  style={styles.input}
-                  value={email}
-                  onChangeText={setEmail}
-                  placeholder="seu@email.com"
-                  placeholderTextColor={COLORS.textLight}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                />
-                <Text style={styles.label}>Senha</Text>
-                <View style={styles.inputWrapper}>
-                  <TextInput
-                    style={styles.inputComIcone}
-                    value={senha}
-                    onChangeText={setSenha}
-                    placeholder="Sua senha"
-                    placeholderTextColor={COLORS.textLight}
-                    secureTextEntry={!mostrarSenha}
-                    autoCapitalize="none"
-                  />
-                  <Pressable onPress={() => setMostrarSenha((v) => !v)} style={styles.olho}>
-                    <MaterialCommunityIcons
-                      name={mostrarSenha ? 'eye-off' : 'eye'}
-                      size={24}
-                      color={COLORS.textLight}
-                    />
-                  </Pressable>
-                </View>
-
-                <Pressable
-                  style={[styles.botaoPrimario, loading && styles.botaoDesabilitado]}
-                  onPress={handleLogin}
-                  disabled={loading}
-                >
-                  {loading ? (
-                    <ActivityIndicator color="#FFFFFF" />
-                  ) : (
-                    <Text style={styles.botaoTexto}>Acessar</Text>
-                  )}
-                </Pressable>
-              </>
-            ) : (
-              <>
-                <Text style={styles.label}>Nome Completo</Text>
-                <TextInput
-                  style={styles.input}
-                  value={nome}
-                  onChangeText={setNome}
-                  placeholder="Seu nome completo"
-                  placeholderTextColor={COLORS.textLight}
-                  autoCapitalize="words"
-                />
-                <Text style={styles.label}>E-mail</Text>
-                <TextInput
-                  style={styles.input}
-                  value={emailCadastro}
-                  onChangeText={setEmailCadastro}
-                  placeholder="seu@email.com"
-                  placeholderTextColor={COLORS.textLight}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                />
-                <Text style={styles.label}>Data de Nascimento</Text>
-                <TextInput
-                  style={styles.input}
-                  value={dataNascimento}
-                  onChangeText={(t) => setDataNascimento(aplicarMascaraData(t))}
-                  placeholder="DD/MM/AAAA"
-                  placeholderTextColor={COLORS.textLight}
-                  keyboardType="number-pad"
-                  maxLength={10}
-                />
-                <Text style={styles.label}>Senha</Text>
-                <View style={styles.inputWrapper}>
-                  <TextInput
-                    style={styles.inputComIcone}
-                    value={senhaCadastro}
-                    onChangeText={setSenhaCadastro}
-                    placeholder="Crie uma senha forte"
-                    placeholderTextColor={COLORS.textLight}
-                    secureTextEntry={!mostrarSenhaCadastro}
-                    autoCapitalize="none"
-                  />
-                  <Pressable
-                    onPress={() => setMostrarSenhaCadastro((v) => !v)}
-                    style={styles.olho}
-                  >
-                    <MaterialCommunityIcons
-                      name={mostrarSenhaCadastro ? 'eye-off' : 'eye'}
-                      size={24}
-                      color={COLORS.textLight}
-                    />
-                  </Pressable>
-                </View>
-                <Text style={styles.label}>Confirmar Senha</Text>
-                <View style={styles.inputWrapper}>
-                  <TextInput
-                    style={styles.inputComIcone}
-                    value={confirmarSenha}
-                    onChangeText={setConfirmarSenha}
-                    placeholder="Repita a senha"
-                    placeholderTextColor={COLORS.textLight}
-                    secureTextEntry={!mostrarConfirmarSenha}
-                    autoCapitalize="none"
-                  />
-                  <Pressable
-                    onPress={() => setMostrarConfirmarSenha((v) => !v)}
-                    style={styles.olho}
-                  >
-                    <MaterialCommunityIcons
-                      name={mostrarConfirmarSenha ? 'eye-off' : 'eye'}
-                      size={24}
-                      color={COLORS.textLight}
-                    />
-                  </Pressable>
-                </View>
-
-                <Pressable
-                  style={[styles.botaoPrimario, loading && styles.botaoDesabilitado]}
+            {/* Face traseira: Cadastro */}
+            <Animated.View
+              style={[
+                styles.face,
+                faceBackStyle,
+                activeTab === 'register' && styles.faceAtiva,
+              ]}
+            >
+              <FloatingTextInput
+                label="Nome Completo"
+                value={nome}
+                onChangeText={setNome}
+                autoCapitalize="words"
+                error={erros.nome}
+              />
+              <FloatingTextInput
+                label="E-mail"
+                value={emailCadastro}
+                onChangeText={setEmailCadastro}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoCorrect={false}
+                error={erros.emailCadastro}
+              />
+              <FloatingTextInput
+                label="Data de Nascimento"
+                value={dataNascimento}
+                onChangeText={(t) => setDataNascimento(aplicarMascaraData(t))}
+                keyboardType="number-pad"
+                maxLength={10}
+                error={erros.dataNascimento}
+              />
+              <FloatingTextInput
+                label="Senha"
+                value={senhaCadastro}
+                onChangeText={setSenhaCadastro}
+                secureTextEntry
+                showPasswordToggle
+                autoCapitalize="none"
+                error={erros.senhaCadastro}
+              />
+              <FloatingTextInput
+                label="Confirmar Senha"
+                value={confirmarSenha}
+                onChangeText={setConfirmarSenha}
+                secureTextEntry
+                showPasswordToggle
+                autoCapitalize="none"
+                error={erros.confirmarSenha}
+              />
+              <View style={styles.botaoWrapper}>
+                <PrimaryButton
+                  title="Criar Conta"
+                  loading={loadingCadastro}
                   onPress={handleCadastro}
-                  disabled={loading}
-                >
-                  {loading ? (
-                    <ActivityIndicator color="#FFFFFF" />
-                  ) : (
-                    <Text style={styles.botaoTexto}>Criar Conta</Text>
-                  )}
+                />
+              </View>
+              <View style={styles.botaoVoltarWrapper}>
+                <Pressable style={styles.botaoVoltar} onPress={() => trocarAba('login')}>
+                  <Text style={styles.botaoVoltarTexto}>Voltar ao Login</Text>
                 </Pressable>
-              </>
-            )}
+              </View>
+            </Animated.View>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -309,17 +277,6 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     padding: 24,
     justifyContent: 'center',
-  },
-  header: {
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  title: {
-    fontSize: 36,
-    fontWeight: 'bold',
-    color: COLORS.primary,
-    letterSpacing: 4,
-    marginTop: 8,
   },
   tabs: {
     flexDirection: 'row',
@@ -347,71 +304,41 @@ const styles = StyleSheet.create({
   tabTextAtiva: {
     color: '#FFFFFF',
   },
-  erroBox: {
-    backgroundColor: '#FEE2E2',
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 16,
-  },
-  erroText: {
-    color: COLORS.danger,
-    textAlign: 'center',
-  },
-  card: {
+  cartao: {
     backgroundColor: COLORS.surface,
     borderRadius: 16,
     padding: 20,
     borderWidth: 1,
     borderColor: COLORS.border,
+    position: 'relative',
+    minHeight: 440,
   },
-  label: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: COLORS.textDark,
-    marginBottom: 6,
-    marginTop: 12,
+  face: {
+    position: 'absolute',
+    top: 20,
+    left: 20,
+    right: 20,
+    backfaceVisibility: 'hidden',
   },
-  input: {
-    backgroundColor: COLORS.background,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-    fontSize: 16,
-    color: COLORS.textDark,
+  faceAtiva: {
+    zIndex: 2,
   },
-  inputWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.background,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: 8,
-  },
-  inputComIcone: {
-    flex: 1,
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-    fontSize: 16,
-    color: COLORS.textDark,
-  },
-  olho: {
-    paddingHorizontal: 12,
-  },
-  botaoPrimario: {
-    backgroundColor: COLORS.primary,
-    borderRadius: 8,
-    paddingVertical: 14,
-    alignItems: 'center',
+  botaoWrapper: {
     marginTop: 24,
   },
-  botaoDesabilitado: {
-    opacity: 0.7,
+  botaoVoltarWrapper: {
+    marginTop: 12,
   },
-  botaoTexto: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '700',
+  botaoVoltar: {
+    paddingVertical: 12,
+    alignItems: 'center',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: COLORS.primary,
+  },
+  botaoVoltarTexto: {
+    color: COLORS.primary,
+    fontSize: 15,
+    fontWeight: '600',
   },
 });

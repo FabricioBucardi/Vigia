@@ -17,6 +17,16 @@ Este arquivo é lido em toda sessão de desenvolvimento. Leia e siga rigorosamen
 
 ---
 
+## 🧱 REGRA DE OURO DE DESENVOLVIMENTO (CÓDIGO MODERNO)
+
+Ao codificar, adote estritamente os padrões mais modernos das documentações oficiais:
+
+1. **React (estados, ciclo de vida e Hooks)**: siga as diretrizes modernas de `https://react.dev/`.
+2. **React Native (componentes nativos, layout estrutural, boas práticas móveis e desempenho)**: siga as diretrizes de `https://reactnative.dev/`.
+3. **Proibido padrões legados**: não use componentes de classe, nem manipulação direta de ciclo de vida antigo (`componentDidMount`, `componentWillUnmount`, etc.). Sempre prefira **componentes funcionais limpos** e **hooks otimizados** (`useState`, `useEffect`, `useMemo`, `useCallback`, `useRef`, etc.).
+
+---
+
 ## 📦 Contexto do Projeto
 
 - **App**: Vigia — plataforma colaborativa de segurança urbana de São Caetano do Sul (MVP).
