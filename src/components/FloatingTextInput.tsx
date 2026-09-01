@@ -101,8 +101,7 @@ export default function FloatingTextInput({
           {...rest}
         />
         <Animated.Text
-          pointerEvents="none"
-          style={[styles.label, labelStyle, { color: labelColor }]}
+          style={[styles.label, labelStyle, { color: labelColor, pointerEvents: 'none' }]}
         >
           {label}
         </Animated.Text>

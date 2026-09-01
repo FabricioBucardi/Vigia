@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, {
+  interpolate,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
@@ -62,24 +63,34 @@ export default function AuthScreen() {
   const [confirmarSenha, setConfirmarSenha] = useState('');
 
   const [erros, setErros] = useState<ErrosForm>({});
+  const [larguraTabs, setLarguraTabs] = useState(0);
 
-  const virada = useSharedValue(0);
+  const progresso = useSharedValue(0);
 
-  const faceFrontStyle = useAnimatedStyle(() => ({
-    transform: [{ perspective: 1200 }, { rotateY: `${virada.value}deg` }],
+  const faceLoginStyle = useAnimatedStyle(() => ({
+    transform: [
+      { translateX: `${interpolate(progresso.value, [0, 1], [0, -110])}%` },
+    ],
+    opacity: interpolate(progresso.value, [0, 1], [1, 0]),
   }));
-  const faceBackStyle = useAnimatedStyle(() => ({
-    transform: [{ perspective: 1200 }, { rotateY: `${virada.value - 180}deg` }],
+  const faceCadastroStyle = useAnimatedStyle(() => ({
+    transform: [
+      { translateX: `${interpolate(progresso.value, [0, 1], [110, 0])}%` },
+    ],
+    opacity: interpolate(progresso.value, [0, 1], [0, 1]),
+  }));
+
+  const larguraIndicador = Math.max(larguraTabs / 2 - 4, 0);
+  const indicadorStyle = useAnimatedStyle(() => ({
+    transform: [
+      { translateX: interpolate(progresso.value, [0, 1], [0, larguraIndicador]) },
+    ],
   }));
 
   function trocarAba(aba: ActiveTab) {
     setActiveTab(aba);
     setErros({});
-    setViradaPara(aba);
-  }
-
-  function setViradaPara(aba: ActiveTab) {
-    virada.value = withTiming(aba === 'login' ? 0 : 180, { duration: 600 });
+    progresso.value = withTiming(aba === 'login' ? 0 : 1, { duration: 350 });
   }
 
   function validarLogin(): boolean {
@@ -144,19 +155,19 @@ export default function AuthScreen() {
         >
           <VigiaLogo />
 
-          <View style={styles.tabs}>
-            <Pressable
-              style={[styles.tab, activeTab === 'login' && styles.tabAtiva]}
-              onPress={() => trocarAba('login')}
-            >
+          <View
+            style={styles.tabs}
+            onLayout={(e) => setLarguraTabs(e.nativeEvent.layout.width)}
+          >
+            <Animated.View
+              style={[styles.indicador, indicadorStyle, { width: larguraIndicador }]}
+            />
+            <Pressable style={styles.tab} onPress={() => trocarAba('login')}>
               <Text style={[styles.tabText, activeTab === 'login' && styles.tabTextAtiva]}>
                 Entrar
               </Text>
             </Pressable>
-            <Pressable
-              style={[styles.tab, activeTab === 'register' && styles.tabAtiva]}
-              onPress={() => trocarAba('register')}
-            >
+            <Pressable style={styles.tab} onPress={() => trocarAba('register')}>
               <Text style={[styles.tabText, activeTab === 'register' && styles.tabTextAtiva]}>
                 Cadastrar
               </Text>
@@ -168,7 +179,7 @@ export default function AuthScreen() {
             <Animated.View
               style={[
                 styles.face,
-                faceFrontStyle,
+                faceLoginStyle,
                 activeTab === 'login' && styles.faceAtiva,
               ]}
             >
@@ -199,7 +210,7 @@ export default function AuthScreen() {
             <Animated.View
               style={[
                 styles.face,
-                faceBackStyle,
+                faceCadastroStyle,
                 activeTab === 'register' && styles.faceAtiva,
               ]}
             >
@@ -252,11 +263,6 @@ export default function AuthScreen() {
                   onPress={handleCadastro}
                 />
               </View>
-              <View style={styles.botaoVoltarWrapper}>
-                <Pressable style={styles.botaoVoltar} onPress={() => trocarAba('login')}>
-                  <Text style={styles.botaoVoltarTexto}>Voltar ao Login</Text>
-                </Pressable>
-              </View>
             </Animated.View>
           </View>
         </ScrollView>
@@ -286,6 +292,8 @@ const styles = StyleSheet.create({
     padding: 4,
     borderWidth: 1,
     borderColor: COLORS.border,
+    position: 'relative',
+    overflow: 'hidden',
   },
   tab: {
     flex: 1,
@@ -293,7 +301,12 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: 'center',
   },
-  tabAtiva: {
+  indicador: {
+    position: 'absolute',
+    top: 4,
+    bottom: 4,
+    left: 4,
+    borderRadius: 8,
     backgroundColor: COLORS.primary,
   },
   tabText: {
@@ -311,6 +324,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLORS.border,
     position: 'relative',
+    overflow: 'hidden',
     minHeight: 440,
   },
   face: {
@@ -318,7 +332,6 @@ const styles = StyleSheet.create({
     top: 20,
     left: 20,
     right: 20,
-    backfaceVisibility: 'hidden',
   },
   faceAtiva: {
     zIndex: 2,

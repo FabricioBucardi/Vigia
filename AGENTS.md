@@ -64,14 +64,17 @@ vigia-app/
 ## 🎨 Paleta de Cores (Material Design 3)
 
 Centralizada em `src/styles/colors.ts`. Usar sempre as variáveis, nunca hex solto:
-- `primary` `#1E3A8A` (Azul Escuro — Segurança/GCM)
-- `secondary` `#3B82F6` (Azul Claro — Ações Secundárias)
-- `danger` `#EF4444` (Vermelho — Insegurança/Alerta)
-- `success` `#10B981` (Verde — Segurança/Pontos Positivos)
+- `primary` `#0a2369` (Azul Escuro — Segurança/GCM)
+- `secondary` `#055ae3` (Azul Claro — Ações Secundárias)
+- `danger` `#f33311` (Vermelho — Insegurança/Alerta)
+- `success` `#0ab732` (Verde — Segurança/Pontos Positivos)
 - `warning` `#F59E0B` (Amarelo — Atenção/Moderação)
-- `background` `#F3F4F6` (Cinza Claro — Fundo)
-- `surface` `#FFFFFF` (Branco — Cards/Modais/Inputs)
-- `textDark` `#1F2937`, `textLight` `#6B7280`, `border` `#D1D5DB`
+- `background` `#e5e7ea` (Cinza Claro — Fundo das telas)
+- `surface` `#FFFFFF` (Branco — Cards, Modais, Inputs)
+- `textDark` `#040506` (Cinza Quase Preto — Textos principais)
+- `textLight` `#6B7280`, `border` `#D1D5DB`
+
+> ✅ **Paleta DEFINIDA pelo usuário** (após rodada de testes em 01/09): os valores acima são a versão FINAL e oficial. Alterações de cor só devem ser feitas sob pedido explícito do usuário.
 
 ## 📂 Documentos de Referência (em `docs/`)
 
