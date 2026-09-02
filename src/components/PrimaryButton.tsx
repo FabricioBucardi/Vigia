@@ -21,7 +21,7 @@ export default function PrimaryButton({ title, loading = false, disabled, ...res
       {...rest}
     >
       {loading ? (
-        <ActivityIndicator color="#FFFFFF" />
+        <ActivityIndicator color={COLORS.surface} />
       ) : (
         <Text style={styles.texto}>{title}</Text>
       )}
@@ -42,7 +42,7 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   texto: {
-    color: '#FFFFFF',
+    color: COLORS.surface,
     fontSize: 16,
     fontWeight: '700',
   },

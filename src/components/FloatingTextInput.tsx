@@ -8,6 +8,7 @@ import {
   View,
 } from 'react-native';
 import Animated, {
+  SharedValue,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
@@ -15,7 +16,41 @@ import Animated, {
 } from 'react-native-reanimated';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { COLORS } from '../styles/colors';
-import FloatingLabel, { ALTURA_CAMPO } from './FloatingLabel';
+
+export const ALTURA_CAMPO = 56;
+
+const FONTE_REPOUSO = 16;
+const FONTE_ATIVO = 12;
+const TRANSLATE_REPOUSO = -9;
+const TRANSLATE_ATIVO = -ALTURA_CAMPO / 2;
+
+type FloatingLabelProps = {
+  label: string;
+  progress: SharedValue<number>;
+  cor: string;
+};
+
+function FloatingLabel({ label, progress, cor }: FloatingLabelProps) {
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [
+      {
+        translateY:
+          TRANSLATE_REPOUSO + progress.value * (TRANSLATE_ATIVO - TRANSLATE_REPOUSO),
+      },
+    ],
+    fontSize: FONTE_REPOUSO + progress.value * (FONTE_ATIVO - FONTE_REPOUSO),
+    lineHeight: FONTE_REPOUSO + progress.value * (FONTE_ATIVO - FONTE_REPOUSO),
+  }));
+
+  return (
+    <Animated.Text
+      numberOfLines={1}
+      style={[styles.label, animatedStyle, { color: cor }]}
+    >
+      {label}
+    </Animated.Text>
+  );
+}
 
 type FloatingTextInputProps = TextInputProps & {
   label: string;
@@ -48,24 +83,27 @@ export default function FloatingTextInput({
   const shakeX = useSharedValue(0);
 
   useEffect(() => {
-    progress.value = withTiming(ativo ? 1 : 0, { duration: 180 });
+    progress.value = withTiming(ativo ? 1 : 0, { duration: 160 });
   }, [ativo, progress]);
 
   useEffect(() => {
     if (error) {
-      shakeX.value = 0;
-      shakeX.value = withSequence(
-        withTiming(-8, { duration: 50 }),
-        withTiming(8, { duration: 50 }),
-        withTiming(-6, { duration: 50 }),
-        withTiming(6, { duration: 50 }),
-        withTiming(0, { duration: 50 })
-      );
+      dispararShake();
     }
   }, [error, shakeX]);
 
+  function dispararShake() {
+    shakeX.value = 0;
+    shakeX.value = withSequence(
+      withTiming(-8, { duration: 50 }),
+      withTiming(8, { duration: 50 }),
+      withTiming(-6, { duration: 50 }),
+      withTiming(6, { duration: 50 }),
+      withTiming(0, { duration: 50 })
+    );
+  }
+
   // O label parte do centro do campo e sobe para o topo quando ativo.
-  // Toda a geometria (top/translateY/fontSize/lineHeight) vive no FloatingLabel.
   const shakeStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: shakeX.value }],
   }));
@@ -95,6 +133,9 @@ export default function FloatingTextInput({
           }}
           onBlur={(e) => {
             setFocused(false);
+            if (error) {
+              dispararShake();
+            }
             onBlur?.(e);
           }}
           onChangeText={(t) => {
@@ -122,6 +163,13 @@ export default function FloatingTextInput({
 const styles = StyleSheet.create({
   group: {
     marginBottom: 4,
+  },
+  label: {
+    position: 'absolute',
+    left: 14,
+    top: ALTURA_CAMPO / 2,
+    fontWeight: '500',
+    pointerEvents: 'none',
   },
   border: {
     borderWidth: 1,
