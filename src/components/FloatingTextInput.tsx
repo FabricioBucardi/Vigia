@@ -15,6 +15,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { COLORS } from '../styles/colors';
+import FloatingLabel, { ALTURA_CAMPO } from './FloatingLabel';
 
 type FloatingTextInputProps = TextInputProps & {
   label: string;
@@ -22,9 +23,8 @@ type FloatingTextInputProps = TextInputProps & {
   error?: string | null;
   secureTextEntry?: boolean;
   showPasswordToggle?: boolean;
+  onClearError?: () => void;
 };
-
-const ALTURA_CAMPO = 56;
 
 export default function FloatingTextInput({
   label,
@@ -32,8 +32,11 @@ export default function FloatingTextInput({
   error,
   secureTextEntry = false,
   showPasswordToggle = false,
+  onClearError,
   onFocus,
   onBlur,
+  onChangeText,
+  placeholder,
   ...rest
 }: FloatingTextInputProps) {
   const [hidden, setHidden] = useState(secureTextEntry);
@@ -62,13 +65,7 @@ export default function FloatingTextInput({
   }, [error, shakeX]);
 
   // O label parte do centro do campo e sobe para o topo quando ativo.
-  // `top` fixo = centro (28); translateY -9 centraliza o texto de 16px
-  // em repouso e diminui para -28 quando o label flutua para o topo.
-  const labelStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: -9 + progress.value * -19 }],
-    fontSize: 16 - progress.value * 4,
-  }));
-
+  // Toda a geometria (top/translateY/fontSize/lineHeight) vive no FloatingLabel.
   const shakeStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: shakeX.value }],
   }));
@@ -89,22 +86,24 @@ export default function FloatingTextInput({
           value={value}
           secureTextEntry={hidden}
           style={styles.input}
+          placeholder={focused ? placeholder : undefined}
           placeholderTextColor={COLORS.textLight}
           onFocus={(e) => {
             setFocused(true);
+            onClearError?.();
             onFocus?.(e);
           }}
           onBlur={(e) => {
             setFocused(false);
             onBlur?.(e);
           }}
+          onChangeText={(t) => {
+            onChangeText?.(t);
+            onClearError?.();
+          }}
           {...rest}
         />
-        <Animated.Text
-          style={[styles.label, labelStyle, { color: labelColor, pointerEvents: 'none' }]}
-        >
-          {label}
-        </Animated.Text>
+        <FloatingLabel label={label} progress={progress} cor={labelColor} />
         {showPasswordToggle && (
           <Pressable onPress={() => setHidden((h) => !h)} style={styles.olho}>
             <MaterialCommunityIcons
@@ -145,13 +144,9 @@ const styles = StyleSheet.create({
     height: ALTURA_CAMPO,
     fontSize: 16,
     color: COLORS.textDark,
-  },
-  label: {
-    position: 'absolute',
-    left: 14,
-    top: ALTURA_CAMPO / 2,
-    transform: [{ translateY: -9 }],
-    fontWeight: '500',
+    paddingVertical: 0,
+    textAlignVertical: 'center',
+    includeFontPadding: false,
   },
   olho: {
     paddingHorizontal: 4,
