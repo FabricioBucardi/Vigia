@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import Animated, {
   SharedValue,
+  interpolate,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
@@ -20,7 +21,6 @@ import { COLORS } from '../styles/colors';
 export const ALTURA_CAMPO = 56;
 
 const FONTE_REPOUSO = 16;
-const FONTE_ATIVO = 12;
 const TRANSLATE_REPOUSO = -9;
 const TRANSLATE_ATIVO = -ALTURA_CAMPO / 2;
 
@@ -34,12 +34,17 @@ function FloatingLabel({ label, progress, cor }: FloatingLabelProps) {
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [
       {
-        translateY:
-          TRANSLATE_REPOUSO + progress.value * (TRANSLATE_ATIVO - TRANSLATE_REPOUSO),
+        translateY: interpolate(
+          progress.value,
+          [0, 1],
+          [TRANSLATE_REPOUSO, TRANSLATE_ATIVO],
+        ),
+      },
+      {
+        scale: interpolate(progress.value, [0, 1], [1, 0.75]),
       },
     ],
-    fontSize: FONTE_REPOUSO + progress.value * (FONTE_ATIVO - FONTE_REPOUSO),
-    lineHeight: FONTE_REPOUSO + progress.value * (FONTE_ATIVO - FONTE_REPOUSO),
+    transformOrigin: 'left top',
   }));
 
   return (
@@ -95,13 +100,12 @@ export default function FloatingTextInput({
   }, [error, shakeX, disableShake]);
 
   function dispararShake() {
-    shakeX.value = 0;
     shakeX.value = withSequence(
       withTiming(-8, { duration: 50 }),
       withTiming(8, { duration: 50 }),
       withTiming(-6, { duration: 50 }),
       withTiming(6, { duration: 50 }),
-      withTiming(0, { duration: 50 })
+      withTiming(0, { duration: 50 }),
     );
   }
 
@@ -170,6 +174,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 14,
     top: ALTURA_CAMPO / 2,
+    fontSize: FONTE_REPOUSO,
     fontWeight: '500',
     pointerEvents: 'none',
   },
