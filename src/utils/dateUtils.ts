@@ -12,20 +12,24 @@ export function dataCoerente(data: string): boolean {
   if (data.length !== 10) return false;
   const [dia, mes, ano] = data.split('/').map(Number);
   if (mes < 1 || mes > 12 || ano < 1900 || ano > 2100) return false;
-  const bissexto = ano % 4 === 0 && (ano % 100 !== 0 || ano % 400 === 0);
-  const diasNoMes = [
-    31,
-    bissexto ? 29 : 28,
-    31,
-    30,
-    31,
-    30,
-    31,
-    31,
-    30,
-    31,
-    30,
-    31,
-  ];
-  return dia >= 1 && dia <= diasNoMes[mes - 1];
+
+  const tentativa = new Date(ano, mes - 1, dia);
+  if (
+    tentativa.getFullYear() !== ano ||
+    tentativa.getMonth() !== mes - 1 ||
+    tentativa.getDate() !== dia
+  ) {
+    return false;
+  }
+
+  const hoje = new Date();
+  if (tentativa > hoje) return false;
+
+  let idade = hoje.getFullYear() - ano;
+  const difMes = hoje.getMonth() - (mes - 1);
+  if (difMes < 0 || (difMes === 0 && hoje.getDate() < dia)) {
+    idade--;
+  }
+
+  return idade >= 12 && idade <= 120;
 }

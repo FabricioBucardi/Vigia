@@ -59,6 +59,7 @@ type FloatingTextInputProps = TextInputProps & {
   secureTextEntry?: boolean;
   showPasswordToggle?: boolean;
   onClearError?: () => void;
+  disableShake?: boolean;
 };
 
 export default function FloatingTextInput({
@@ -72,6 +73,7 @@ export default function FloatingTextInput({
   onBlur,
   onChangeText,
   placeholder,
+  disableShake = false,
   ...rest
 }: FloatingTextInputProps) {
   const [hidden, setHidden] = useState(secureTextEntry);
@@ -87,10 +89,10 @@ export default function FloatingTextInput({
   }, [ativo, progress]);
 
   useEffect(() => {
-    if (error) {
+    if (error && !disableShake) {
       dispararShake();
     }
-  }, [error, shakeX]);
+  }, [error, shakeX, disableShake]);
 
   function dispararShake() {
     shakeX.value = 0;
@@ -133,7 +135,7 @@ export default function FloatingTextInput({
           }}
           onBlur={(e) => {
             setFocused(false);
-            if (error) {
+            if (error && !disableShake) {
               dispararShake();
             }
             onBlur?.(e);

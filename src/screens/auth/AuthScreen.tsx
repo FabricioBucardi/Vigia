@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -14,6 +14,7 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withTiming,
+  Easing,
 } from 'react-native-reanimated';
 import { COLORS } from '../../styles/colors';
 import VigiaLogo from '../../components/VigiaLogo';
@@ -25,8 +26,11 @@ type ActiveTab = 'login' | 'register';
 export default function AuthScreen() {
   const [activeTab, setActiveTab] = useState<ActiveTab>('login');
   const [larguraTabs, setLarguraTabs] = useState(0);
+  const [alturaLogin, setAlturaLogin] = useState(0);
+  const [alturaCadastro, setAlturaCadastro] = useState(0);
 
   const progresso = useSharedValue(0);
+  const alturaCartaoAnimada = useSharedValue(340);
 
   const larguraIndicador = Math.max(larguraTabs / 2 - 4, 0);
 
@@ -48,8 +52,18 @@ export default function AuthScreen() {
     ],
   }));
   const estiloAlturaCartao = useAnimatedStyle(() => ({
-    height: interpolate(progresso.value, [0, 1], [320, 520]),
+    height: alturaCartaoAnimada.value,
   }));
+
+  useEffect(() => {
+    const alturaAlvo = activeTab === 'login' ? alturaLogin : alturaCadastro;
+    if (alturaAlvo > 0) {
+      alturaCartaoAnimada.value = withTiming(alturaAlvo, {
+        duration: 300,
+        easing: Easing.out(Easing.cubic),
+      });
+    }
+  }, [activeTab, alturaLogin, alturaCadastro]);
 
   function trocarAba(aba: ActiveTab) {
     setActiveTab(aba);
@@ -101,6 +115,10 @@ export default function AuthScreen() {
               importantForAccessibility={
                 activeTab === 'login' ? 'auto' : 'no-hide-descendants'
               }
+              onLayout={(e) => {
+                const h = e.nativeEvent.layout.height;
+                if (h > 0) setAlturaLogin(h);
+              }}
             >
               <LoginForm />
             </Animated.View>
@@ -117,6 +135,10 @@ export default function AuthScreen() {
               importantForAccessibility={
                 activeTab === 'register' ? 'auto' : 'no-hide-descendants'
               }
+              onLayout={(e) => {
+                const h = e.nativeEvent.layout.height;
+                if (h > 0) setAlturaCadastro(h);
+              }}
             >
               <CadastroWizard />
             </Animated.View>
@@ -187,7 +209,6 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    bottom: 0,
     padding: 24,
   },
   faceAtiva: {

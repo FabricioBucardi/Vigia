@@ -55,6 +55,11 @@ export default function CadastroWizard() {
   const isSenhaValida = REGRAS_SENHA.every((regra) => checagens[regra.chave]);
   const isConfirmacaoValida =
     confirmarSenha.length > 0 && confirmarSenha === senhaCadastro;
+
+  const erroConfirmacao =
+    confirmarSenha.length > 0 && confirmarSenha !== senhaCadastro
+      ? 'As senhas devem ser iguais'
+      : null;
   const isFormularioValido =
     isNomeValido &&
     isEmailValido &&
@@ -171,25 +176,11 @@ export default function CadastroWizard() {
           secureTextEntry
           showPasswordToggle
           autoCapitalize="none"
+          error={erroConfirmacao}
+          disableShake
           onFocus={() => campoVisita.onFocus('confirmar')}
           onBlur={() => campoVisita.onBlur('confirmar')}
         />
-        {campoVisita.tocado('confirmar') &&
-          !campoVisita.focado('confirmar') &&
-          confirmarSenha.length > 0 && (
-            <Text
-              style={[
-                styles.mensagemConfirmacao,
-                {
-                  color: isConfirmacaoValida ? COLORS.success : COLORS.textLight,
-                },
-              ]}
-            >
-              {isConfirmacaoValida
-                ? 'As senhas coincidem'
-                : 'As senhas devem ser iguais'}
-            </Text>
-          )}
         <CheckboxTermos
           aceito={termosAceitos}
           onChange={() => setTermosAceitos((prev) => !prev)}
@@ -222,6 +213,7 @@ const styles = StyleSheet.create({
   },
   subFaceAtiva: {
     zIndex: 2,
+    position: 'relative',
   },
   botaoWrapper: {
     marginTop: 24,
@@ -229,11 +221,7 @@ const styles = StyleSheet.create({
   checklist: {
     marginTop: 8,
     gap: 6,
-  },
-  mensagemConfirmacao: {
-    marginTop: 4,
-    fontSize: 13,
-    fontWeight: '500',
+    marginBottom: 16,
   },
   erroEnvio: {
     color: COLORS.danger,
