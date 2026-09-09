@@ -21,8 +21,6 @@ import { COLORS } from '../styles/colors';
 export const ALTURA_CAMPO = 56;
 
 const FONTE_REPOUSO = 16;
-const TRANSLATE_REPOUSO = -9;
-const TRANSLATE_ATIVO = -ALTURA_CAMPO / 2;
 
 type FloatingLabelProps = {
   label: string;
@@ -34,26 +32,24 @@ function FloatingLabel({ label, progress, cor }: FloatingLabelProps) {
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [
       {
-        translateY: interpolate(
-          progress.value,
-          [0, 1],
-          [TRANSLATE_REPOUSO, TRANSLATE_ATIVO],
-        ),
+        translateY: interpolate(progress.value, [0, 1], [0, -14]),
       },
       {
         scale: interpolate(progress.value, [0, 1], [1, 0.75]),
       },
     ],
-    transformOrigin: 'left top',
+    transformOrigin: 'left center',
   }));
 
   return (
-    <Animated.Text
-      numberOfLines={1}
-      style={[styles.label, animatedStyle, { color: cor }]}
-    >
-      {label}
-    </Animated.Text>
+    <View pointerEvents="none" style={styles.labelContainer}>
+      <Animated.Text
+        numberOfLines={1}
+        style={[styles.labelText, animatedStyle, { color: cor }]}
+      >
+        {label}
+      </Animated.Text>
+    </View>
   );
 }
 
@@ -129,7 +125,7 @@ export default function FloatingTextInput({
         <TextInput
           value={value}
           secureTextEntry={hidden}
-          style={styles.input}
+          style={[styles.input, ativo && styles.inputAtivo]}
           placeholder={focused ? placeholder : undefined}
           placeholderTextColor={COLORS.textLight}
           onFocus={(e) => {
@@ -170,13 +166,17 @@ const styles = StyleSheet.create({
   group: {
     marginBottom: 4,
   },
-  label: {
+  labelContainer: {
     position: 'absolute',
     left: 14,
-    top: ALTURA_CAMPO / 2,
+    top: 0,
+    bottom: 0,
+    justifyContent: 'center',
+  },
+  labelText: {
     fontSize: FONTE_REPOUSO,
     fontWeight: '500',
-    pointerEvents: 'none',
+    includeFontPadding: false,
   },
   border: {
     borderWidth: 1,
@@ -202,6 +202,10 @@ const styles = StyleSheet.create({
     paddingVertical: 0,
     textAlignVertical: 'center',
     includeFontPadding: false,
+  },
+  inputAtivo: {
+    paddingTop: 14,
+    paddingBottom: 2,
   },
   olho: {
     paddingHorizontal: 4,

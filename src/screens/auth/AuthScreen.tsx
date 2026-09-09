@@ -74,7 +74,7 @@ export default function AuthScreen() {
     <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView
         style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 16}
       >
         <ScrollView
@@ -161,6 +161,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     padding: 24,
     paddingTop: Platform.OS === 'ios' ? 24 : 40,
+    paddingBottom: 48,
   },
   tabs: {
     flexDirection: 'row',
