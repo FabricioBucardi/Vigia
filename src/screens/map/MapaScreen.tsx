@@ -40,13 +40,17 @@ const LEAFLET_HTML = `
       maxZoom: 18
     }).setView([-23.6200, -46.5630], 13.6);
 
-    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-      maxZoom: 19
-    }).addTo(map);
-
     var rawGeoData = ${JSON.stringify(scsGeoJSON)};
     var scsFeature = rawGeoData.features ? rawGeoData.features[0] : rawGeoData;
+
+    var tempLayer = L.geoJSON(scsFeature);
+    var scsBounds = tempLayer.getBounds();
+
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      bounds: scsBounds,
+      maxZoom: 18
+    }).addTo(map);
 
     var coords = scsFeature.geometry.type === 'MultiPolygon'
       ? scsFeature.geometry.coordinates[0][0]
@@ -66,13 +70,13 @@ const LEAFLET_HTML = `
     L.geoJSON(invertedGeoJson, {
       style: {
         fillColor: '#e5e7ea',
-        fillOpacity: 0.82,
+        fillOpacity: 1.0,
         stroke: false,
         interactive: false
       }
     }).addTo(map);
 
-    var borderLayer = L.geoJSON(scsFeature, {
+    L.geoJSON(scsFeature, {
       style: {
         color: '#0a2369',
         weight: 2.5,
@@ -82,9 +86,8 @@ const LEAFLET_HTML = `
       }
     }).addTo(map);
 
-    var scsBounds = borderLayer.getBounds();
-    map.fitBounds(scsBounds, { padding: [24, 24] });
-    map.setMaxBounds(scsBounds.pad(0.1));
+    map.fitBounds(scsBounds, { padding: [20, 20] });
+    map.setMaxBounds(scsBounds.pad(0.05));
 
     var markersLayer = L.layerGroup().addTo(map);
 
