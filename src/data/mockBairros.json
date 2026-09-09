@@ -1,0 +1,58 @@
+[
+  {
+    "id": 1,
+    "nome": "Centro",
+    "classificacaoSeguranca": 4.2,
+    "latitude": -23.6182,
+    "longitude": -46.5645
+  },
+  {
+    "id": 2,
+    "nome": "Barcelona",
+    "classificacaoSeguranca": 3.5,
+    "latitude": -23.6234,
+    "longitude": -46.5598
+  },
+  {
+    "id": 3,
+    "nome": "Santa Paula",
+    "classificacaoSeguranca": 4.6,
+    "latitude": -23.6265,
+    "longitude": -46.5598
+  },
+  {
+    "id": 4,
+    "nome": "Santa Maria",
+    "classificacaoSeguranca": 4.8,
+    "latitude": -23.6150,
+    "longitude": -46.5520
+  },
+  {
+    "id": 5,
+    "nome": "Cerâmica",
+    "classificacaoSeguranca": 4.1,
+    "latitude": -23.6331,
+    "longitude": -46.5742
+  },
+  {
+    "id": 6,
+    "nome": "Fundação",
+    "classificacaoSeguranca": 3.8,
+    "latitude": -23.6062,
+    "longitude": -46.5735
+  },
+  {
+    "id": 7,
+    "nome": "Santo Antônio",
+    "classificacaoSeguranca": 4.3,
+    "latitude": -23.6290,
+    "longitude": -46.5670
+  },
+  {
+    "id": 8,
+    "nome": "Olímpico",
+    "classificacaoSeguranca": 4.5,
+    "latitude": -23.6210,
+    "longitude": -46.5480
+  }
+]
