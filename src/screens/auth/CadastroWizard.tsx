@@ -48,7 +48,9 @@ export default function CadastroWizard() {
     opacity: interpolate(passoSenha.value, [0, 1], [0, 1]),
   }));
 
-  const isNomeValido = nome.trim().split(/\s+/).length >= 2;
+  const partesNome = nome.trim().split(/\s+/);
+  const isNomeValido =
+    partesNome.length >= 2 && partesNome.every((p) => p.length >= 2);
   const isEmailValido = EMAIL_REGEX.test(emailCadastro.trim());
   const isDataValida = dataCoerente(dataNascimento);
   const checagens = checarRequisitosSenha(senhaCadastro);
