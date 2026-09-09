@@ -4,6 +4,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
+import { ReportsProvider } from './src/context/ReportsContext';
 import AuthStack from './src/navigation/AuthStack';
 import MainTabs from './src/navigation/MainTabs';
 
@@ -24,8 +25,10 @@ export default function App() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
         <AuthProvider>
-          <StatusBar style="dark" />
-          <Root />
+          <ReportsProvider>
+            <StatusBar style="dark" />
+            <Root />
+          </ReportsProvider>
         </AuthProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
