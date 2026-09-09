@@ -12,6 +12,7 @@ export default function CheckboxTermos({ aceito, onChange }: CheckboxTermosProps
     <Pressable
       style={styles.termos}
       onPress={onChange}
+      hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
       accessibilityRole="checkbox"
       accessibilityState={{ checked: aceito }}
     >
