@@ -10,7 +10,7 @@
     "endereco": "Praça da Bandeira, Centro",
     "tipoCategoria": "Segurança",
     "tipoSubcategoria": "Presença Policial",
-    "avaliacaoGravidade": 1,
+    "avaliacaoGravidade": 5,
     "bairroNome": "Centro",
     "dataReporte": "2026-09-01T19:30:00Z"
   },
@@ -25,7 +25,7 @@
     "endereco": "Rua XV de Novembro, 200, Centro",
     "tipoCategoria": "Segurança",
     "tipoSubcategoria": "Boa Iluminação",
-    "avaliacaoGravidade": 1,
+    "avaliacaoGravidade": 4,
     "bairroNome": "Centro",
     "dataReporte": "2026-09-02T08:15:00Z"
   },
@@ -55,7 +55,7 @@
     "endereco": "Av. Paulo Figueiredo, Santa Paula",
     "tipoCategoria": "Segurança",
     "tipoSubcategoria": "Câmeras de Segurança",
-    "avaliacaoGravidade": 2,
+    "avaliacaoGravidade": 4,
     "bairroNome": "Santa Paula",
     "dataReporte": "2026-09-04T14:45:00Z"
   },
@@ -85,7 +85,7 @@
     "endereco": "Parque Municipal, Santa Maria",
     "tipoCategoria": "Segurança",
     "tipoSubcategoria": "Área Segura",
-    "avaliacaoGravidade": 1,
+    "avaliacaoGravidade": 5,
     "bairroNome": "Santa Maria",
     "dataReporte": "2026-09-06T17:20:00Z"
   },
@@ -115,7 +115,7 @@
     "endereco": "Rua da Paz, 300, Santo Antônio",
     "tipoCategoria": "Segurança",
     "tipoSubcategoria": "Presença Policial",
-    "avaliacaoGravidade": 1,
+    "avaliacaoGravidade": 5,
     "bairroNome": "Santo Antônio",
     "dataReporte": "2026-09-08T10:00:00Z"
   },

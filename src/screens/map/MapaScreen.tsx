@@ -1,13 +1,20 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { WebView, WebViewMessageEvent } from 'react-native-webview';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { COLORS } from '../../styles/colors';
 import { useReports } from '../../context/ReportsContext';
+import { useAuth } from '../../context/AuthContext';
 import type { FiltroTipoReporte } from '../../context/ReportsContext.type';
 import type { Reporte } from '../../types/report';
 import scsGeoJSON from '../../data/saoCaetanoGeoJSON.json';
+import ReportDetailCard from '../../components/ReportDetailCard';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { MainStackParamList } from '../../navigation/MainStack';
+
+type Nav = NativeStackNavigationProp<MainStackParamList, 'Tabs'>;
 
 const FILTROS: { chave: FiltroTipoReporte; cor: string; label: string }[] = [
   { chave: 'Todos', cor: COLORS.primary, label: 'Todos' },
@@ -116,6 +123,12 @@ const LEAFLET_HTML = `
         markersLayer.addLayer(m);
       });
     };
+
+    map.on('click', function(e) {
+      if (window.ReactNativeWebView) {
+        window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'MAP_CLICK' }));
+      }
+    });
   </script>
 </body>
 </html>
@@ -141,11 +154,14 @@ function WebFallback() {
 }
 
 export default function MapaScreen() {
+  const navigation = useNavigation<Nav>();
+  const insets = useSafeAreaInsets();
   const {
     filteredReports,
     reports,
     filtroAtivo,
     setFiltroAtivo,
+    selectedReport,
     setSelectedReport,
   } = useReports();
 
@@ -173,6 +189,8 @@ export default function MapaScreen() {
             (r) => r.idReporte === dados.payload.idReporte,
           );
           if (encontrado) setSelectedReport(encontrado);
+        } else if (dados.type === 'MAP_CLICK') {
+          setSelectedReport(null);
         }
       } catch {
         // Mensagem não é JSON válido, ignorar
@@ -197,7 +215,7 @@ export default function MapaScreen() {
         onMessage={handleMessage}
       />
 
-      <View style={styles.filtrosContainer}>
+      <View style={[styles.filtrosContainer, { top: insets.top + 12 }]}>
         {FILTROS.map((f) => {
           const ativo = filtroAtivo === f.chave;
           return (
@@ -225,6 +243,20 @@ export default function MapaScreen() {
           );
         })}
       </View>
+
+      <ReportDetailCard
+        report={selectedReport}
+        onClose={() => setSelectedReport(null)}
+      />
+
+      {!selectedReport && (
+        <Pressable
+          style={[styles.fab, { bottom: insets.bottom + 16 }]}
+          onPress={() => navigation.navigate('CriarReporte')}
+        >
+          <MaterialCommunityIcons name="plus" size={28} color={COLORS.surface} />
+        </Pressable>
+      )}
     </View>
   );
 }
@@ -301,5 +333,22 @@ const styles = StyleSheet.create({
     color: COLORS.textLight,
     textAlign: 'center',
     lineHeight: 20,
+  },
+  fab: {
+    position: 'absolute',
+    bottom: 24,
+    right: 20,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: COLORS.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 6,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    zIndex: 20,
   },
 });

@@ -6,7 +6,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
 import { ReportsProvider } from './src/context/ReportsContext';
 import AuthStack from './src/navigation/AuthStack';
-import MainTabs from './src/navigation/MainTabs';
+import MainStack from './src/navigation/MainStack';
 
 function Root() {
   const { user } = useAuth();
@@ -15,7 +15,7 @@ function Root() {
   // retorne de fato para a tela de Login/Cadastro.
   return (
     <NavigationContainer>
-      {user ? <MainTabs /> : <AuthStack />}
+      {user ? <MainStack /> : <AuthStack />}
     </NavigationContainer>
   );
 }
