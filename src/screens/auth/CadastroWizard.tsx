@@ -16,6 +16,7 @@ import RequisitoSenha, {
 import { useAuth } from '../../context/AuthContext';
 import { ApiError } from '../../services/api';
 import { COLORS } from '../../styles/colors';
+import { FONT_SIZE, FONT_WEIGHT, LAYOUT, RADIUS, SPACING } from '../../styles/tokens';
 import {
   aplicarMascaraData,
   converterDataParaIso,
@@ -259,41 +260,41 @@ export default function CadastroWizard() {
 const styles = StyleSheet.create({
   subFace: {
     position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
+    top: SPACING.none,
+    left: SPACING.none,
+    right: SPACING.none,
   },
   subFaceAtiva: {
     zIndex: 2,
     position: 'relative',
   },
   botaoWrapper: {
-    marginTop: 24,
+    marginTop: SPACING.xxl,
   },
   checklist: {
-    marginTop: 8,
-    gap: 6,
-    marginBottom: 16,
+    marginTop: SPACING.sm,
+    gap: LAYOUT.checklistGap,
+    marginBottom: SPACING.lg,
   },
   erroEnvio: {
     color: COLORS.danger,
-    fontSize: 13,
-    fontWeight: '500',
-    marginTop: 12,
+    fontSize: FONT_SIZE.label,
+    fontWeight: FONT_WEIGHT.medium,
+    marginTop: SPACING.md,
   },
   botaoVoltarWrapper: {
-    marginTop: 12,
+    marginTop: SPACING.md,
   },
   botaoVoltar: {
-    paddingVertical: 12,
+    paddingVertical: SPACING.md,
     alignItems: 'center',
-    borderRadius: 12,
+    borderRadius: RADIUS.md,
     borderWidth: 1,
     borderColor: COLORS.primary,
   },
   botaoVoltarTexto: {
     color: COLORS.primary,
-    fontSize: 15,
-    fontWeight: '600',
+    fontSize: FONT_SIZE.bodyLg,
+    fontWeight: FONT_WEIGHT.semibold,
   },
 });

@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import {
-  Keyboard,
-  Platform,
+  KeyboardAvoidingView,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -14,6 +13,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { COLORS } from '../../styles/colors';
+import { FONT_SIZE, FONT_WEIGHT, ICON_SIZE, LAYOUT, RADIUS, SPACING } from '../../styles/tokens';
 import { useReports } from '../../context/ReportsContext';
 import {
   SUBCATEGORIAS_SEGURANCA,
@@ -21,13 +21,17 @@ import {
   rotuloSubcategoria,
 } from '../../data';
 import { ApiError } from '../../services/api';
+import { obterEndereco } from '../../services/geocodingService';
 import type {
   TipoCategoriaReporte,
   TipoSubcategoriaReporte,
 } from '../../types/report';
+import type { Coordenada } from '../../types/coordenada';
 import type { MainStackParamList } from '../../navigation/MainStack';
 import FloatingTextInput from '../../components/FloatingTextInput';
 import PrimaryButton from '../../components/PrimaryButton';
+import SeletorLocal from '../../components/SeletorLocal';
+import { useTeclado } from '../../hooks/useTeclado';
 
 type Nav = NativeStackNavigationProp<MainStackParamList, 'CriarReporte'>;
 
@@ -41,7 +45,7 @@ export default function CriarReporteScreen() {
   const { adicionarReporte } = useReports();
   const insets = useSafeAreaInsets();
   const scrollViewRef = useRef<ScrollView>(null);
-  const [tecladoAltura, setTecladoAltura] = useState(0);
+  const { tecladoAberto } = useTeclado();
   const [campoFocado, setCampoFocado] = useState<'titulo' | 'descricao' | null>(null);
 
   const [tipoCategoria, setTipoCategoria] = useState<TipoCategoriaReporte>('Insegurança');
@@ -53,37 +57,48 @@ export default function CriarReporteScreen() {
   const [erros, setErros] = useState<{ titulo?: string; descricao?: string }>({});
   const [enviando, setEnviando] = useState(false);
   const [erroEnvio, setErroEnvio] = useState<string | null>(null);
+  const [localizacao, setLocalizacao] = useState<Coordenada>(LOCALIZACAO_PADRAO);
+  const [seletorLocalAberto, setSeletorLocalAberto] = useState(false);
+  const [endereco, setEndereco] = useState<string | null>(null);
+  const [buscandoEndereco, setBuscandoEndereco] = useState(false);
 
   useEffect(() => {
-    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
-    const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+    let ativo = true;
 
-    const showSub = Keyboard.addListener(showEvent, (e) => {
-      setTecladoAltura(e.endCoordinates.height);
-    });
-    const hideSub = Keyboard.addListener(hideEvent, () => {
-      setTecladoAltura(0);
-      setCampoFocado(null);
-    });
+    async function buscarEndereco() {
+      setBuscandoEndereco(true);
+      try {
+        const resultado = await obterEndereco(localizacao);
+        if (ativo) setEndereco(resultado);
+      } finally {
+        if (ativo) setBuscandoEndereco(false);
+      }
+    }
+
+    void buscarEndereco();
 
     return () => {
-      showSub.remove();
-      hideSub.remove();
+      ativo = false;
     };
-  }, []);
+  }, [localizacao]);
 
   useEffect(() => {
-    if (tecladoAltura > 0 && campoFocado) {
+    if (!tecladoAberto) {
+      setCampoFocado(null);
+      return;
+    }
+
+    if (campoFocado) {
       const timer = setTimeout(() => {
         if (campoFocado === 'descricao') {
           scrollViewRef.current?.scrollToEnd({ animated: true });
         } else if (campoFocado === 'titulo') {
           scrollViewRef.current?.scrollTo({ y: 240, animated: true });
         }
-      }, 100);
+      }, 150);
       return () => clearTimeout(timer);
     }
-  }, [tecladoAltura, campoFocado]);
+  }, [tecladoAberto, campoFocado]);
 
   const subcategorias =
     tipoCategoria === 'Segurança' ? SUBCATEGORIAS_SEGURANCA : SUBCATEGORIAS_INSEGURANCA;
@@ -120,8 +135,8 @@ export default function CriarReporteScreen() {
       await adicionarReporte({
         titulo: titulo.trim(),
         descricao: descricao.trim(),
-        latitude: LOCALIZACAO_PADRAO.latitude,
-        longitude: LOCALIZACAO_PADRAO.longitude,
+        latitude: localizacao.latitude,
+        longitude: localizacao.longitude,
         tipoCategoria,
         tipoSubcategoria,
       });
@@ -137,36 +152,45 @@ export default function CriarReporteScreen() {
     }
   }
 
+  const rotuloLocalizacao = buscandoEndereco
+    ? 'Buscando endereço...'
+    : endereco ?? 'Localização selecionada';
+
   return (
     <View
       style={[
         styles.container,
         {
           paddingTop: insets.top,
-          paddingBottom: tecladoAltura > 0 ? tecladoAltura : Math.max(insets.bottom, 16),
+          paddingBottom: Math.max(insets.bottom, SPACING.lg),
         },
       ]}
     >
       <View style={styles.header}>
         <Pressable
           onPress={() => navigation.goBack()}
-          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+          hitSlop={{ top: SPACING.md, bottom: SPACING.md, left: SPACING.md, right: SPACING.md }}
           style={styles.botaoVoltar}
         >
-          <MaterialCommunityIcons name="arrow-left" size={24} color={COLORS.textDark} />
+          <MaterialCommunityIcons name="arrow-left" size={ICON_SIZE.lg} color={COLORS.textDark} />
         </Pressable>
         <Text style={styles.tituloHeader}>Nova Ocorrência</Text>
-        <View style={{ width: 40 }} />
+        <View style={styles.espacador} />
       </View>
 
-      <ScrollView
-        ref={scrollViewRef}
-        style={styles.scroll}
-        contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior="padding"
+        keyboardVerticalOffset={0}
       >
-          <Text style={styles.secao}>Categoria</Text>
+        <ScrollView
+          ref={scrollViewRef}
+          style={styles.scroll}
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <Text style={[styles.secao, styles.primeiraSecao]}>Categoria</Text>
           <View style={styles.categoriaRow}>
             <Pressable
               onPress={() => trocarCategoria('Segurança')}
@@ -234,18 +258,20 @@ export default function CriarReporteScreen() {
             ))}
           </View>
 
-          <FloatingTextInput
-            label="Título da ocorrência"
-            value={titulo}
-            onChangeText={setTitulo}
-            maxLength={30}
-            error={erros.titulo}
-            onClearError={() => {
-              setErros((e) => ({ ...e, titulo: undefined }));
-              if (erroEnvio) setErroEnvio(null);
-            }}
-            onFocus={() => setCampoFocado('titulo')}
-          />
+          <View style={styles.campoTitulo}>
+            <FloatingTextInput
+              label="Título da ocorrência"
+              value={titulo}
+              onChangeText={setTitulo}
+              maxLength={30}
+              error={erros.titulo}
+              onClearError={() => {
+                setErros((e) => ({ ...e, titulo: undefined }));
+                if (erroEnvio) setErroEnvio(null);
+              }}
+              onFocus={() => setCampoFocado('titulo')}
+            />
+          </View>
 
           <Text style={styles.label}>Descrição detalhada do ocorrido</Text>
           <TextInput
@@ -265,13 +291,24 @@ export default function CriarReporteScreen() {
           />
           {erros.descricao ? <Text style={styles.erroTexto}>{erros.descricao}</Text> : null}
 
-          <View style={styles.localizacaoCard}>
-            <MaterialCommunityIcons name="map-marker-outline" size={20} color={COLORS.primary} />
-            <Text style={styles.localizacaoTexto}>
-              Centro de São Caetano do Sul ({LOCALIZACAO_PADRAO.latitude.toFixed(5)},{' '}
-              {LOCALIZACAO_PADRAO.longitude.toFixed(5)})
-            </Text>
-          </View>
+          <Pressable
+            onPress={() => setSeletorLocalAberto(true)}
+            accessibilityRole="button"
+            accessibilityLabel="Alterar localização da ocorrência"
+            style={styles.localizacaoCard}
+          >
+            <MaterialCommunityIcons name="map-marker-outline" size={ICON_SIZE.md} color={COLORS.primary} />
+            <View style={styles.localizacaoInfo}>
+              <Text style={styles.localizacaoTitulo}>{rotuloLocalizacao}</Text>
+              <Text style={styles.localizacaoTexto}>
+                Toque para escolher no mapa
+              </Text>
+            </View>
+            <View style={styles.localizacaoAcao}>
+              <Text style={styles.localizacaoAcaoTexto}>Alterar</Text>
+              <MaterialCommunityIcons name="chevron-right" size={ICON_SIZE.md} color={COLORS.secondary} />
+            </View>
+          </Pressable>
 
           {erroEnvio ? <Text style={styles.erroEnvio}>{erroEnvio}</Text> : null}
 
@@ -283,6 +320,17 @@ export default function CriarReporteScreen() {
             loading={enviando}
           />
         </ScrollView>
+      </KeyboardAvoidingView>
+
+      <SeletorLocal
+        visivel={seletorLocalAberto}
+        localInicial={localizacao}
+        onConfirmar={(coordenada) => {
+          setLocalizacao(coordenada);
+          setSeletorLocalAberto(false);
+        }}
+        onFechar={() => setSeletorLocalAberto(false)}
+      />
     </View>
   );
 }
@@ -292,47 +340,57 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
   },
+  flex: {
+    flex: 1,
+  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     backgroundColor: COLORS.surface,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
+    paddingHorizontal: LAYOUT.headerPaddingX,
+    paddingVertical: LAYOUT.headerPaddingY,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.border,
   },
   botaoVoltar: {
-    width: 40,
+    width: LAYOUT.iconButton,
     alignItems: 'center',
   },
+  espacador: {
+    width: LAYOUT.iconButton,
+  },
   tituloHeader: {
-    fontSize: 18,
-    fontWeight: '700',
+    fontSize: FONT_SIZE.title,
+    fontWeight: FONT_WEIGHT.bold,
     color: COLORS.textDark,
   },
   scroll: {
     flex: 1,
   },
   scrollContent: {
-    padding: 20,
-    paddingBottom: 32,
+    paddingHorizontal: LAYOUT.screenPaddingX,
+    paddingTop: SPACING.sm,
+    paddingBottom: SPACING.xxl,
+  },
+  primeiraSecao: {
+    marginTop: SPACING.none,
   },
   secao: {
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: FONT_SIZE.body,
+    fontWeight: FONT_WEIGHT.semibold,
     color: COLORS.textDark,
-    marginBottom: 8,
-    marginTop: 16,
+    marginBottom: SPACING.sm,
+    marginTop: SPACING.lg,
   },
   categoriaRow: {
     flexDirection: 'row',
-    gap: 12,
+    gap: SPACING.md,
   },
   categoriaBotao: {
     flex: 1,
-    paddingVertical: 14,
-    borderRadius: 12,
+    paddingVertical: LAYOUT.buttonPaddingY,
+    borderRadius: RADIUS.md,
     alignItems: 'center',
   },
   categoriaInativo: {
@@ -341,8 +399,8 @@ const styles = StyleSheet.create({
     borderColor: COLORS.border,
   },
   categoriaTexto: {
-    fontSize: 15,
-    fontWeight: '600',
+    fontSize: FONT_SIZE.bodyLg,
+    fontWeight: FONT_WEIGHT.semibold,
     color: COLORS.textDark,
   },
   categoriaTextoAtivo: {
@@ -351,12 +409,15 @@ const styles = StyleSheet.create({
   chipsContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
+    gap: SPACING.sm,
+  },
+  campoTitulo: {
+    marginTop: SPACING.lg,
   },
   chip: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 16,
+    paddingHorizontal: LAYOUT.chipPaddingX,
+    paddingVertical: LAYOUT.chipPaddingY,
+    borderRadius: RADIUS.lg,
   },
   chipInativo: {
     backgroundColor: COLORS.surface,
@@ -364,8 +425,8 @@ const styles = StyleSheet.create({
     borderColor: COLORS.border,
   },
   chipTexto: {
-    fontSize: 13,
-    fontWeight: '600',
+    fontSize: FONT_SIZE.label,
+    fontWeight: FONT_WEIGHT.semibold,
     color: COLORS.textDark,
   },
   chipTextoAtivo: {
@@ -373,26 +434,26 @@ const styles = StyleSheet.create({
   },
   erroEnvio: {
     color: COLORS.danger,
-    fontSize: 13,
+    fontSize: FONT_SIZE.label,
     textAlign: 'center',
-    marginBottom: 12,
+    marginBottom: SPACING.md,
   },
   label: {
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: FONT_SIZE.body,
+    fontWeight: FONT_WEIGHT.semibold,
     color: COLORS.textDark,
-    marginBottom: 8,
-    marginTop: 16,
+    marginBottom: SPACING.sm,
+    marginTop: SPACING.lg,
   },
   textArea: {
     borderWidth: 1,
     borderColor: COLORS.border,
-    borderRadius: 12,
+    borderRadius: RADIUS.md,
     backgroundColor: COLORS.surface,
-    padding: 14,
-    fontSize: 15,
+    padding: LAYOUT.fieldPadding,
+    fontSize: FONT_SIZE.bodyLg,
     color: COLORS.textDark,
-    minHeight: 100,
+    minHeight: LAYOUT.textAreaMinHeight,
     textAlignVertical: 'top',
   },
   textAreaErro: {
@@ -400,24 +461,43 @@ const styles = StyleSheet.create({
   },
   erroTexto: {
     color: COLORS.danger,
-    fontSize: 12,
-    marginTop: 4,
-    marginLeft: 4,
+    fontSize: FONT_SIZE.caption,
+    marginTop: SPACING.xs,
+    marginLeft: SPACING.xs,
   },
   localizacaoCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: LAYOUT.infoGap,
     backgroundColor: COLORS.surface,
     borderWidth: 1,
     borderColor: COLORS.border,
-    borderRadius: 12,
-    padding: 14,
-    marginTop: 20,
-    marginBottom: 20,
+    borderRadius: RADIUS.md,
+    padding: LAYOUT.cardPaddingCompact,
+    marginTop: SPACING.xl,
+    marginBottom: SPACING.xl,
+  },
+  localizacaoInfo: {
+    flex: 1,
+    gap: SPACING.hairline,
+  },
+  localizacaoTitulo: {
+    fontSize: FONT_SIZE.body,
+    fontWeight: FONT_WEIGHT.semibold,
+    color: COLORS.textDark,
   },
   localizacaoTexto: {
-    fontSize: 14,
-    color: COLORS.textDark,
+    fontSize: FONT_SIZE.label,
+    color: COLORS.textLight,
+  },
+  localizacaoAcao: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.hairline,
+  },
+  localizacaoAcaoTexto: {
+    fontSize: FONT_SIZE.label,
+    fontWeight: FONT_WEIGHT.semibold,
+    color: COLORS.secondary,
   },
 });

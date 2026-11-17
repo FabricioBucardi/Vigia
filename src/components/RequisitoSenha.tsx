@@ -9,6 +9,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { COLORS } from '../styles/colors';
+import { FONT_SIZE, FONT_WEIGHT, ICON_SIZE, SPACING } from '../styles/tokens';
 
 export type RequisitosSenha = {
   minimo8: boolean;
@@ -75,14 +76,14 @@ export default function RequisitoSenha({ texto, atendida }: RequisitoSenhaProps)
         <Animated.View style={[StyleSheet.absoluteFill, estiloBolinha]}>
           <MaterialCommunityIcons
             name="circle-outline"
-            size={18}
+            size={ICON_SIZE.sm}
             color={COLORS.textLight}
           />
         </Animated.View>
         <Animated.View style={[StyleSheet.absoluteFill, estiloCheck]}>
           <MaterialCommunityIcons
             name="check-circle"
-            size={18}
+            size={ICON_SIZE.sm}
             color={COLORS.success}
           />
         </Animated.View>
@@ -96,14 +97,14 @@ const styles = StyleSheet.create({
   regra: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: SPACING.sm,
   },
   icone: {
-    width: 18,
-    height: 18,
+    width: ICON_SIZE.sm,
+    height: ICON_SIZE.sm,
   },
   regraTexto: {
-    fontSize: 13,
-    fontWeight: '500',
+    fontSize: FONT_SIZE.label,
+    fontWeight: FONT_WEIGHT.medium,
   },
 });

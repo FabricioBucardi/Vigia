@@ -48,6 +48,7 @@ vigia-app/
 ├── src/
 │   ├── components/          # Componentes reutilizáveis (Card, Button, BottomSheet)
 │   ├── data/                # Mocks em JSON (mockReports.json, mockBairros.json, mockUsers.json)
+│   ├── hooks/               # Hooks reutilizáveis (ex.: useTeclado)
 │   ├── navigation/          # Rotas (AppNavigator, MainTabs, AuthStack)
 │   ├── screens/
 │   │   ├── auth/            # AuthScreen (Login + Cadastro em abas)

@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { WebView, WebViewMessageEvent } from 'react-native-webview';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { COLORS } from '../../styles/colors';
+import { FONT_SIZE, FONT_WEIGHT, ICON_SIZE, LAYOUT, RADIUS, SHADOWS, SPACING } from '../../styles/tokens';
 import { useReports } from '../../context/ReportsContext';
 import { useAuth } from '../../context/AuthContext';
 import type { FiltroTipoReporte } from '../../context/ReportsContext.type';
@@ -55,32 +56,7 @@ const LEAFLET_HTML = `
 
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-      bounds: scsBounds,
       maxZoom: 18
-    }).addTo(map);
-
-    var coords = scsFeature.geometry.type === 'MultiPolygon'
-      ? scsFeature.geometry.coordinates[0][0]
-      : scsFeature.geometry.coordinates[0];
-
-    var invertedGeoJson = {
-      "type": "Feature",
-      "geometry": {
-        "type": "Polygon",
-        "coordinates": [
-          [[-180, -90], [180, -90], [180, 90], [-180, 90], [-180, -90]],
-          coords
-        ]
-      }
-    };
-
-    L.geoJSON(invertedGeoJson, {
-      style: {
-        fillColor: '#e5e7ea',
-        fillOpacity: 1.0,
-        stroke: false,
-        interactive: false
-      }
     }).addTo(map);
 
     L.geoJSON(scsFeature, {
@@ -288,7 +264,7 @@ export default function MapaScreen() {
 
       {(isLoading || erro) && (
         <Pressable
-          style={[styles.aviso, { top: insets.top + 56 }]}
+          style={[styles.aviso, { top: insets.top + LAYOUT.overlayTopOffset }]}
           onPress={() => {
             if (erro && !isLoading) void recarregarReportes();
           }}
@@ -299,7 +275,7 @@ export default function MapaScreen() {
           ) : (
             <MaterialCommunityIcons
               name="alert-circle-outline"
-              size={18}
+              size={ICON_SIZE.sm}
               color={COLORS.danger}
             />
           )}
@@ -318,10 +294,10 @@ export default function MapaScreen() {
 
       {!selectedReport && (
         <Pressable
-          style={[styles.fab, { bottom: insets.bottom + 16 }]}
+          style={[styles.fab, { bottom: insets.bottom + SPACING.lg }]}
           onPress={() => navigation.navigate('CriarReporte')}
         >
-          <MaterialCommunityIcons name="plus" size={28} color={COLORS.surface} />
+          <MaterialCommunityIcons name="plus" size={ICON_SIZE.xl} color={COLORS.surface} />
         </Pressable>
       )}
     </View>
@@ -339,31 +315,27 @@ const styles = StyleSheet.create({
   },
   filtrosContainer: {
     position: 'absolute',
-    top: 16,
-    left: 16,
-    right: 16,
+    top: SPACING.lg,
+    left: SPACING.lg,
+    right: SPACING.lg,
     flexDirection: 'row',
-    gap: 8,
+    gap: SPACING.sm,
     zIndex: 10,
   },
   chip: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
+    paddingHorizontal: LAYOUT.chipPaddingX,
+    paddingVertical: LAYOUT.chipPaddingY,
+    borderRadius: RADIUS.xl,
     borderWidth: 1,
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
+    ...SHADOWS.mdStrong,
   },
   chipInativo: {
     backgroundColor: COLORS.surface,
     borderColor: COLORS.border,
   },
   chipTexto: {
-    fontSize: 13,
-    fontWeight: '600',
+    fontSize: FONT_SIZE.label,
+    fontWeight: FONT_WEIGHT.semibold,
   },
   chipTextoAtivo: {
     color: COLORS.surface,
@@ -373,44 +345,36 @@ const styles = StyleSheet.create({
   },
   aviso: {
     position: 'absolute',
-    left: 16,
-    right: 16,
+    left: SPACING.lg,
+    right: SPACING.lg,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: SPACING.sm,
     backgroundColor: COLORS.surface,
     borderWidth: 1,
     borderColor: COLORS.border,
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
+    borderRadius: RADIUS.md,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: LAYOUT.bannerPaddingY,
+    ...SHADOWS.md,
     zIndex: 9,
   },
   avisoTexto: {
     flex: 1,
-    fontSize: 13,
+    fontSize: FONT_SIZE.label,
     color: COLORS.textDark,
   },
   fab: {
     position: 'absolute',
-    bottom: 24,
-    right: 20,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    bottom: SPACING.xxl,
+    right: SPACING.xl,
+    width: LAYOUT.fab,
+    height: LAYOUT.fab,
+    borderRadius: RADIUS.full,
     backgroundColor: COLORS.primary,
     alignItems: 'center',
     justifyContent: 'center',
-    elevation: 6,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
+    ...SHADOWS.fab,
     zIndex: 20,
   },
 });

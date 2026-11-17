@@ -1,6 +1,7 @@
 import { Pressable, StyleSheet, Text } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { COLORS } from '../styles/colors';
+import { FONT_SIZE, SPACING } from '../styles/tokens';
 
 type CheckboxTermosProps = {
   aceito: boolean;
@@ -12,7 +13,7 @@ export default function CheckboxTermos({ aceito, onChange }: CheckboxTermosProps
     <Pressable
       style={styles.termos}
       onPress={onChange}
-      hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
+      hitSlop={{ top: SPACING.sm, bottom: SPACING.sm, left: SPACING.xs, right: SPACING.xs }}
       accessibilityRole="checkbox"
       accessibilityState={{ checked: aceito }}
     >
@@ -32,12 +33,12 @@ const styles = StyleSheet.create({
   termos: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    marginTop: 16,
+    gap: SPACING.sm,
+    marginTop: SPACING.lg,
   },
   termosTexto: {
     flex: 1,
-    fontSize: 13,
+    fontSize: FONT_SIZE.label,
     color: COLORS.textDark,
   },
 });

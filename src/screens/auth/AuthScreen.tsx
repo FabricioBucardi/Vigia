@@ -17,6 +17,7 @@ import Animated, {
   Easing,
 } from 'react-native-reanimated';
 import { COLORS } from '../../styles/colors';
+import { FONT_SIZE, FONT_WEIGHT, LAYOUT, RADIUS, SPACING } from '../../styles/tokens';
 import VigiaLogo from '../../components/VigiaLogo';
 import CadastroWizard from './CadastroWizard';
 import LoginForm from './LoginForm';
@@ -74,11 +75,12 @@ export default function AuthScreen() {
     <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView
         style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 16}
+        behavior="padding"
+        keyboardVerticalOffset={0}
       >
         <ScrollView
-          contentContainerStyle={[styles.scrollContent, { flexGrow: 1 }]}
+          style={styles.flex}
+          contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
         >
           <VigiaLogo />
@@ -159,16 +161,15 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
-    padding: 24,
-    paddingTop: Platform.OS === 'ios' ? 24 : 40,
-    paddingBottom: 48,
+    padding: SPACING.xxl,
+    paddingTop: Platform.OS === 'ios' ? SPACING.xxl : SPACING.huge,
   },
   tabs: {
     flexDirection: 'row',
-    marginBottom: 20,
+    marginBottom: SPACING.xl,
     backgroundColor: COLORS.surface,
-    borderRadius: 12,
-    padding: 4,
+    borderRadius: RADIUS.md,
+    padding: SPACING.xs,
     borderWidth: 1,
     borderColor: COLORS.border,
     position: 'relative',
@@ -176,21 +177,21 @@ const styles = StyleSheet.create({
   },
   tab: {
     flex: 1,
-    paddingVertical: 10,
-    borderRadius: 8,
+    paddingVertical: LAYOUT.tabPaddingY,
+    borderRadius: RADIUS.sm,
     alignItems: 'center',
   },
   indicador: {
     position: 'absolute',
-    top: 4,
-    bottom: 4,
-    left: 4,
-    borderRadius: 8,
+    top: SPACING.xs,
+    bottom: SPACING.xs,
+    left: SPACING.xs,
+    borderRadius: RADIUS.sm,
     backgroundColor: COLORS.primary,
   },
   tabText: {
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: FONT_SIZE.input,
+    fontWeight: FONT_WEIGHT.semibold,
     color: COLORS.textLight,
   },
   tabTextAtiva: {
@@ -198,8 +199,8 @@ const styles = StyleSheet.create({
   },
   cartao: {
     backgroundColor: COLORS.surface,
-    borderRadius: 16,
-    padding: 0,
+    borderRadius: RADIUS.lg,
+    padding: SPACING.none,
     borderWidth: 1,
     borderColor: COLORS.border,
     position: 'relative',
@@ -207,10 +208,10 @@ const styles = StyleSheet.create({
   },
   face: {
     position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    padding: 24,
+    top: SPACING.none,
+    left: SPACING.none,
+    right: SPACING.none,
+    padding: SPACING.xxl,
   },
   faceAtiva: {
     zIndex: 2,

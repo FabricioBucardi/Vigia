@@ -6,6 +6,7 @@ import {
   PressableProps,
 } from 'react-native';
 import { COLORS } from '../styles/colors';
+import { FONT_SIZE, FONT_WEIGHT, LAYOUT, RADIUS } from '../styles/tokens';
 
 type PrimaryButtonProps = PressableProps & {
   title: string;
@@ -32,18 +33,18 @@ export default function PrimaryButton({ title, loading = false, disabled, ...res
 const styles = StyleSheet.create({
   botao: {
     backgroundColor: COLORS.primary,
-    borderRadius: 12,
-    paddingVertical: 14,
+    borderRadius: RADIUS.md,
+    paddingVertical: LAYOUT.buttonPaddingY,
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 50,
+    minHeight: LAYOUT.touchTarget,
   },
   botaoDesabilitado: {
     opacity: 0.7,
   },
   texto: {
     color: COLORS.surface,
-    fontSize: 16,
-    fontWeight: '700',
+    fontSize: FONT_SIZE.input,
+    fontWeight: FONT_WEIGHT.bold,
   },
 });

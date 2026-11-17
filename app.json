@@ -23,7 +23,13 @@
       "bundler": "metro"
     },
     "plugins": [
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "O Vigia usa sua localização para indicar o ponto da ocorrência no mapa."
+        }
+      ]
     ]
   }
 }

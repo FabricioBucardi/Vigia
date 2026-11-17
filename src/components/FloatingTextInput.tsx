@@ -17,10 +17,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { COLORS } from '../styles/colors';
-
-export const ALTURA_CAMPO = 56;
-
-const FONTE_REPOUSO = 16;
+import { FONT_SIZE, FONT_WEIGHT, LAYOUT, RADIUS, SPACING } from '../styles/tokens';
 
 type FloatingLabelProps = {
   label: string;
@@ -164,27 +161,27 @@ export default function FloatingTextInput({
 
 const styles = StyleSheet.create({
   group: {
-    marginBottom: 4,
+    marginBottom: SPACING.xs,
   },
   labelContainer: {
     position: 'absolute',
-    left: 14,
-    top: 0,
-    bottom: 0,
+    left: LAYOUT.fieldPadding,
+    top: SPACING.none,
+    bottom: SPACING.none,
     justifyContent: 'center',
   },
   labelText: {
-    fontSize: FONTE_REPOUSO,
-    fontWeight: '500',
+    fontSize: FONT_SIZE.input,
+    fontWeight: FONT_WEIGHT.medium,
     includeFontPadding: false,
   },
   border: {
     borderWidth: 1,
     borderColor: COLORS.border,
-    borderRadius: 12,
+    borderRadius: RADIUS.md,
     backgroundColor: COLORS.surface,
-    paddingHorizontal: 14,
-    height: ALTURA_CAMPO,
+    paddingHorizontal: LAYOUT.fieldPadding,
+    height: LAYOUT.fieldHeight,
     flexDirection: 'row',
     alignItems: 'center',
   },
@@ -196,24 +193,24 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    height: ALTURA_CAMPO,
-    fontSize: 16,
+    height: LAYOUT.fieldHeight,
+    fontSize: FONT_SIZE.input,
     color: COLORS.textDark,
-    paddingVertical: 0,
+    paddingVertical: SPACING.none,
     textAlignVertical: 'center',
     includeFontPadding: false,
   },
   inputAtivo: {
-    paddingTop: 14,
-    paddingBottom: 2,
+    paddingTop: LAYOUT.fieldPadding,
+    paddingBottom: SPACING.hairline,
   },
   olho: {
-    paddingHorizontal: 4,
+    paddingHorizontal: SPACING.xs,
   },
   erroTexto: {
     color: COLORS.danger,
-    fontSize: 12,
-    marginTop: 4,
-    marginLeft: 4,
+    fontSize: FONT_SIZE.caption,
+    marginTop: SPACING.xs,
+    marginLeft: SPACING.xs,
   },
 });

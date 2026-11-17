@@ -1,4 +1,5 @@
 import { Image, StyleSheet, View } from 'react-native';
+import { LAYOUT } from '../styles/tokens';
 
 export default function VigiaLogo() {
   return (
@@ -15,10 +16,10 @@ export default function VigiaLogo() {
 const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
-    marginBottom: 28,
+    marginBottom: LAYOUT.logoGap,
   },
   logo: {
-    width: 140,
-    height: 140,
+    width: LAYOUT.logo,
+    height: LAYOUT.logo,
   },
 });

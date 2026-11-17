@@ -5,6 +5,7 @@ import PrimaryButton from '../../components/PrimaryButton';
 import { useAuth } from '../../context/AuthContext';
 import { ApiError } from '../../services/api';
 import { EMAIL_REGEX } from '../../utils/validators';
+import { SPACING } from '../../styles/tokens';
 
 type ErrosForm = {
   email?: string;
@@ -93,9 +94,9 @@ export default function LoginForm() {
 
 const styles = StyleSheet.create({
   grupoCampos: {
-    gap: 16,
+    gap: SPACING.lg,
   },
   botaoWrapper: {
-    marginTop: 24,
+    marginTop: SPACING.xxl,
   },
 });

@@ -9,6 +9,7 @@ import Animated, {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { COLORS } from '../styles/colors';
+import { FONT_SIZE, FONT_WEIGHT, ICON_SIZE, LAYOUT, RADIUS, SHADOWS, SPACING } from '../styles/tokens';
 import { rotuloSubcategoria } from '../data';
 import type { Reporte } from '../types/report';
 
@@ -63,7 +64,7 @@ export default function ReportDetailCard({
   const corCategoria = isSeguranca ? COLORS.success : COLORS.danger;
 
   return (
-    <Animated.View style={[styles.card, animatedStyle, { bottom: Math.max(insets.bottom, 16) }]}>
+    <Animated.View style={[styles.card, animatedStyle, { bottom: Math.max(insets.bottom, SPACING.lg) }]}>
       <View style={styles.header}>
         <View style={styles.headerLeft}>
           <View
@@ -86,17 +87,6 @@ export default function ReportDetailCard({
       </View>
 
       <Text style={styles.titulo}>{report.titulo}</Text>
-
-      <View style={styles.linhaEndereco}>
-        <MaterialCommunityIcons
-          name="map-marker-outline"
-          size={13}
-          color={COLORS.textLight}
-        />
-        <Text style={styles.endereco}>
-          {report.latitude.toFixed(5)}, {report.longitude.toFixed(5)}
-        </Text>
-      </View>
 
       <Text style={styles.descricao}>{report.descricao}</Text>
 
@@ -156,16 +146,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: COLORS.textDark,
     marginBottom: 6,
-  },
-  linhaEndereco: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    marginBottom: 8,
-  },
-  endereco: {
-    fontSize: 13,
-    color: COLORS.textLight,
   },
   descricao: {
     fontSize: 14,
