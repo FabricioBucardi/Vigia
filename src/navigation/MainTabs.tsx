@@ -1,5 +1,5 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { FontAwesome5, MaterialCommunityIcons } from '@expo/vector-icons';
 import MapaScreen from '../screens/map/MapaScreen';
 import PerfilScreen from '../screens/profile/PerfilScreen';
 import { COLORS } from '../styles/colors';
@@ -25,7 +25,7 @@ export default function MainTabs() {
         component={MapaScreen}
         options={{
           tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons name="map" color={color} size={size} />
+            <FontAwesome5 name="map-marker-alt" color={color} size={size} solid />
           ),
         }}
       />

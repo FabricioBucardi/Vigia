@@ -1,11 +1,14 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } from 'react';
 import {
   ActivityIndicator,
+  Keyboard,
   Modal,
   Platform,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -13,6 +16,11 @@ import { WebView, WebViewMessageEvent } from 'react-native-webview';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
 import { COLORS } from '../styles/colors';
+import {
+  buscarEnderecos,
+  TAMANHO_MINIMO_BUSCA,
+  type SugestaoEndereco,
+} from '../services/geocodingService';
 import { FONT_SIZE, FONT_WEIGHT, ICON_SIZE, LAYOUT, RADIUS, SHADOWS, SPACING } from '../styles/tokens';
 import scsGeoJSON from '../data/saoCaetanoGeoJSON.json';
 import type { Coordenada } from '../types/coordenada';
@@ -159,6 +167,7 @@ function MapaSelecao({
 
 const TEMPO_LIMITE_GPS = 12000;
 const TEMPO_LIMITE_CACHE = 2500;
+const TEMPO_DEBOUNCE_BUSCA = 200;
 
 class TempoLimiteGpsError extends Error {
   constructor() {
@@ -198,6 +207,12 @@ export default function SeletorLocal({
   const [ponto, setPonto] = useState<Coordenada>(localInicial);
   const [carregandoGps, setCarregandoGps] = useState(false);
   const [erroGps, setErroGps] = useState<string | null>(null);
+  const [termoBusca, setTermoBusca] = useState('');
+  const [consulta, setConsulta] = useState('');
+  const [sugestoes, setSugestoes] = useState<SugestaoEndereco[]>([]);
+  const [buscandoEndereco, setBuscandoEndereco] = useState(false);
+  const [erroBusca, setErroBusca] = useState<string | null>(null);
+  const [mostrarSugestoes, setMostrarSugestoes] = useState(false);
 
   const html = useMemo(
     () => montarHtml(localInicial.latitude, localInicial.longitude),
@@ -208,8 +223,52 @@ export default function SeletorLocal({
     if (visivel) {
       setPonto(localInicial);
       setErroGps(null);
+      setTermoBusca('');
+      setConsulta('');
+      setSugestoes([]);
+      setErroBusca(null);
+      setMostrarSugestoes(false);
     }
   }, [visivel, localInicial]);
+
+  useEffect(() => {
+    if (!visivel) return;
+
+    const termo = consulta.trim();
+    if (termo.length < TAMANHO_MINIMO_BUSCA) {
+      setSugestoes([]);
+      setErroBusca(null);
+      setBuscandoEndereco(false);
+      return;
+    }
+
+    const controlador = new AbortController();
+    setBuscandoEndereco(true);
+    setErroBusca(null);
+    setMostrarSugestoes(true);
+
+    const temporizador = setTimeout(() => {
+      buscarEnderecos(termo, controlador.signal)
+        .then((resultados) => {
+          if (controlador.signal.aborted) return;
+          setSugestoes(resultados);
+          setMostrarSugestoes(true);
+        })
+        .catch(() => {
+          if (controlador.signal.aborted) return;
+          setSugestoes([]);
+          setErroBusca('Não foi possível buscar o endereço. Verifique sua conexão.');
+        })
+        .finally(() => {
+          if (!controlador.signal.aborted) setBuscandoEndereco(false);
+        });
+    }, TEMPO_DEBOUNCE_BUSCA);
+
+    return () => {
+      clearTimeout(temporizador);
+      controlador.abort();
+    };
+  }, [consulta, visivel]);
 
   const enviarComando = useCallback(
     (tipo: string, payload: unknown) => {
@@ -228,12 +287,30 @@ export default function SeletorLocal({
     enviarComando('SET_PONTO', { ...ponto, centralizar: true });
   }, [enviarComando, ponto]);
 
+  const selecionarSugestao = useCallback(
+    (sugestao: SugestaoEndereco) => {
+      setPonto(sugestao.coordenada);
+      enviarComando('SET_PONTO', { ...sugestao.coordenada, centralizar: true });
+      setTermoBusca(sugestao.descricao);
+      setConsulta('');
+      setSugestoes([]);
+      setErroBusca(null);
+      setBuscandoEndereco(false);
+      setMostrarSugestoes(false);
+      Keyboard.dismiss();
+    },
+    [enviarComando],
+  );
+
   const processarMensagem = useCallback((dados: MensagemMapa) => {
     if (dados?.type !== 'PONTO_SELECIONADO') return;
     const { latitude, longitude } = dados.payload ?? {};
     if (typeof latitude === 'number' && typeof longitude === 'number') {
       setPonto({ latitude, longitude });
       setErroGps(null);
+      setTermoBusca('');
+      setConsulta('');
+      setMostrarSugestoes(false);
     }
   }, []);
 
@@ -360,6 +437,98 @@ export default function SeletorLocal({
           <View style={styles.espacador} />
         </View>
 
+        <View style={styles.buscaContainer}>
+          <View style={styles.buscaLinha}>
+            <MaterialCommunityIcons
+              name="magnify"
+              size={ICON_SIZE.md}
+              color={COLORS.textLight}
+            />
+            <TextInput
+              value={termoBusca}
+              onChangeText={(texto) => {
+                setTermoBusca(texto);
+                setConsulta(texto);
+                setMostrarSugestoes(true);
+              }}
+              onFocus={() => setMostrarSugestoes(true)}
+              placeholder="Buscar rua ou endereço em São Caetano do Sul"
+              placeholderTextColor={COLORS.textLight}
+              returnKeyType="search"
+              autoCorrect={false}
+              accessibilityLabel="Buscar rua ou endereço em São Caetano do Sul"
+              style={styles.buscaInput}
+            />
+            {buscandoEndereco ? (
+              <ActivityIndicator size="small" color={COLORS.primary} />
+            ) : termoBusca.length > 0 ? (
+              <Pressable
+                onPress={() => {
+                  setTermoBusca('');
+                  setConsulta('');
+                  setSugestoes([]);
+                  setErroBusca(null);
+                  setMostrarSugestoes(false);
+                  Keyboard.dismiss();
+                }}
+                hitSlop={{
+                  top: SPACING.sm,
+                  bottom: SPACING.sm,
+                  left: SPACING.sm,
+                  right: SPACING.sm,
+                }}
+                accessibilityRole="button"
+                accessibilityLabel="Limpar busca"
+                style={styles.buscaLimpar}
+              >
+                <MaterialCommunityIcons
+                  name="close"
+                  size={ICON_SIZE.md}
+                  color={COLORS.textLight}
+                />
+              </Pressable>
+            ) : null}
+          </View>
+
+          {mostrarSugestoes &&
+          consulta.trim().length >= TAMANHO_MINIMO_BUSCA ? (
+            <ScrollView
+              style={styles.sugestoesContainer}
+              keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator={false}
+            >
+              {erroBusca ? (
+                <Text style={styles.sugestaoMensagem}>{erroBusca}</Text>
+              ) : buscandoEndereco && sugestoes.length === 0 ? (
+                <Text style={styles.sugestaoMensagem}>Buscando endereços...</Text>
+              ) : !buscandoEndereco && sugestoes.length === 0 ? (
+                <Text style={styles.sugestaoMensagem}>
+                  Nenhum endereço encontrado em São Caetano do Sul.
+                </Text>
+              ) : (
+                sugestoes.map((sugestao) => (
+                  <Pressable
+                    key={`${sugestao.coordenada.latitude},${sugestao.coordenada.longitude}`}
+                    onPress={() => selecionarSugestao(sugestao)}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Selecionar ${sugestao.descricao}`}
+                    style={styles.sugestaoItem}
+                  >
+                    <MaterialCommunityIcons
+                      name="map-marker-outline"
+                      size={ICON_SIZE.md}
+                      color={COLORS.primary}
+                    />
+                    <Text style={styles.sugestaoTexto} numberOfLines={2}>
+                      {sugestao.descricao}
+                    </Text>
+                  </Pressable>
+                ))
+              )}
+            </ScrollView>
+          ) : null}
+        </View>
+
         <View style={styles.mapaContainer}>
           {Platform.OS === 'web' ? (
             <MapaSelecao
@@ -441,6 +610,64 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZE.title,
     fontWeight: FONT_WEIGHT.bold,
     color: COLORS.textDark,
+  },
+  buscaContainer: {
+    zIndex: 5,
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.md,
+    backgroundColor: COLORS.surface,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+  },
+  buscaLinha: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.sm,
+    backgroundColor: COLORS.background,
+    borderRadius: RADIUS.md,
+    paddingHorizontal: SPACING.md,
+    minHeight: LAYOUT.touchTarget,
+  },
+  buscaInput: {
+    flex: 1,
+    fontSize: FONT_SIZE.bodyLg,
+    color: COLORS.textDark,
+    paddingVertical: SPACING.sm,
+  },
+  buscaLimpar: {
+    padding: SPACING.xs,
+  },
+  sugestoesContainer: {
+    position: 'absolute',
+    top: '100%',
+    left: SPACING.lg,
+    right: SPACING.lg,
+    maxHeight: LAYOUT.sugestoesMaxHeight,
+    backgroundColor: COLORS.surface,
+    borderRadius: RADIUS.md,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    ...SHADOWS.md,
+    overflow: 'hidden',
+    zIndex: 10,
+  },
+  sugestaoItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.sm,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.md,
+  },
+  sugestaoTexto: {
+    flex: 1,
+    fontSize: FONT_SIZE.body,
+    color: COLORS.textDark,
+  },
+  sugestaoMensagem: {
+    padding: SPACING.md,
+    fontSize: FONT_SIZE.label,
+    color: COLORS.textLight,
+    textAlign: 'center',
   },
   mapaContainer: {
     flex: 1,

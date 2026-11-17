@@ -72,6 +72,7 @@ export const LAYOUT = {
   logo: 140,
   contentMaxWidth: 320,
   textAreaMinHeight: 100,
+  sugestoesMaxHeight: 240,
 } as const;
 
 export const SHADOWS: Record<'sm' | 'md' | 'mdStrong' | 'lg' | 'fab', ViewStyle> = {
