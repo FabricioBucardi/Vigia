@@ -14,9 +14,19 @@ import RequisitoSenha, {
   checarRequisitosSenha,
 } from '../../components/RequisitoSenha';
 import { useAuth } from '../../context/AuthContext';
+import { ApiError } from '../../services/api';
 import { COLORS } from '../../styles/colors';
-import { aplicarMascaraData, dataCoerente } from '../../utils/dateUtils';
-import { EMAIL_REGEX } from '../../utils/validators';
+import {
+  aplicarMascaraData,
+  converterDataParaIso,
+  dataCoerente,
+} from '../../utils/dateUtils';
+import {
+  EMAIL_REGEX,
+  TELEFONE_REGEX,
+  apenasDigitos,
+  aplicarMascaraTelefone,
+} from '../../utils/validators';
 import useCampoVisita from './useCampoVisita';
 
 export default function CadastroWizard() {
@@ -24,6 +34,7 @@ export default function CadastroWizard() {
 
   const [nome, setNome] = useState('');
   const [emailCadastro, setEmailCadastro] = useState('');
+  const [telefone, setTelefone] = useState('');
   const [dataNascimento, setDataNascimento] = useState('');
   const [senhaCadastro, setSenhaCadastro] = useState('');
   const [confirmarSenha, setConfirmarSenha] = useState('');
@@ -52,6 +63,8 @@ export default function CadastroWizard() {
   const isNomeValido =
     partesNome.length >= 2 && partesNome.every((p) => p.length >= 2);
   const isEmailValido = EMAIL_REGEX.test(emailCadastro.trim());
+  const telefoneDigitos = apenasDigitos(telefone);
+  const isTelefoneValido = TELEFONE_REGEX.test(telefoneDigitos);
   const isDataValida = dataCoerente(dataNascimento);
   const checagens = checarRequisitosSenha(senhaCadastro);
   const isSenhaValida = REGRAS_SENHA.every((regra) => checagens[regra.chave]);
@@ -65,6 +78,7 @@ export default function CadastroWizard() {
   const isFormularioValido =
     isNomeValido &&
     isEmailValido &&
+    isTelefoneValido &&
     isDataValida &&
     isSenhaValida &&
     isConfirmacaoValida &&
@@ -78,9 +92,15 @@ export default function CadastroWizard() {
     campoVisita.tocado('email') && !campoVisita.focado('email') && !isEmailValido
       ? 'Informe um e-mail válido.'
       : undefined;
+  const erroTelefone =
+    campoVisita.tocado('telefone') &&
+    !campoVisita.focado('telefone') &&
+    !isTelefoneValido
+      ? 'Informe DDD + número (ex.: 11987654321).'
+      : undefined;
   const erroData =
     campoVisita.tocado('data') && !campoVisita.focado('data') && !isDataValida
-      ? 'Data inválida. Use o formato DD/MM/AAAA.'
+      ? 'Data inválida. Use DD/MM/AAAA e idade mínima de 13 anos.'
       : undefined;
 
   function irParaSenha() {
@@ -98,9 +118,23 @@ export default function CadastroWizard() {
     setLoading(true);
     setErroEnvio(null);
     try {
-      await signUp({ nome, email: emailCadastro, senha: senhaCadastro });
-    } catch {
-      setErroEnvio('Não foi possível criar a conta. Tente novamente.');
+      await signUp({
+        nome: nome.trim(),
+        email: emailCadastro.trim(),
+        telefone: telefoneDigitos,
+        dataNascimento: converterDataParaIso(dataNascimento),
+        senha: senhaCadastro,
+      });
+    } catch (erro) {
+      if (erro instanceof ApiError) {
+        setErroEnvio(
+          erro.status === 409
+            ? 'Este e-mail já está cadastrado.'
+            : erro.message,
+        );
+      } else {
+        setErroEnvio('Não foi possível criar a conta. Verifique sua conexão.');
+      }
     } finally {
       setLoading(false);
     }
@@ -134,6 +168,17 @@ export default function CadastroWizard() {
           error={erroEmailCadastro}
         />
         <FloatingTextInput
+          label="Telefone"
+          value={telefone}
+          onChangeText={(t) => setTelefone(aplicarMascaraTelefone(t))}
+          keyboardType="phone-pad"
+          maxLength={15}
+          placeholder="(11) 98765-4321"
+          onFocus={() => campoVisita.onFocus('telefone')}
+          onBlur={() => campoVisita.onBlur('telefone')}
+          error={erroTelefone}
+        />
+        <FloatingTextInput
           label="Data de Nascimento"
           value={dataNascimento}
           onChangeText={(t) => setDataNascimento(aplicarMascaraData(t))}
@@ -147,7 +192,12 @@ export default function CadastroWizard() {
         <View style={styles.botaoWrapper}>
           <PrimaryButton
             title="Próximo"
-            disabled={!isNomeValido || !isEmailValido || !isDataValida}
+            disabled={
+              !isNomeValido ||
+              !isEmailValido ||
+              !isTelefoneValido ||
+              !isDataValida
+            }
             onPress={irParaSenha}
           />
         </View>

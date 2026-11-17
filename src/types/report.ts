@@ -1,17 +1,18 @@
 export type TipoCategoriaReporte = 'Segurança' | 'Insegurança';
 
 export type SubcategoriaSeguranca =
-  | 'Presença Policial'
-  | 'Boa Iluminação'
-  | 'Câmeras de Segurança'
-  | 'Área Segura';
+  | 'PRESENCA_POLICIAL'
+  | 'CAMERAS'
+  | 'ILUMINACAO_BOA'
+  | 'AREA_MOVIMENTADA'
+  | 'COMERCIO_ATIVO';
 
 export type SubcategoriaInseguranca =
-  | 'Assalto/Roubo'
-  | 'Iluminação Ruim'
-  | 'Ponto de Drogas'
-  | 'Ausência de Policiamento'
-  | 'Atividade Suspeita';
+  | 'ROUBO'
+  | 'FURTO'
+  | 'VANDALISMO'
+  | 'ILUMINACAO_RUIM'
+  | 'ACIDENTE';
 
 export type TipoSubcategoriaReporte =
   | SubcategoriaSeguranca

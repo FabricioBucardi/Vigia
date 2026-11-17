@@ -3,6 +3,7 @@ import { StyleSheet, View } from 'react-native';
 import FloatingTextInput from '../../components/FloatingTextInput';
 import PrimaryButton from '../../components/PrimaryButton';
 import { useAuth } from '../../context/AuthContext';
+import { ApiError } from '../../services/api';
 import { EMAIL_REGEX } from '../../utils/validators';
 
 type ErrosForm = {
@@ -41,8 +42,19 @@ export default function LoginForm() {
     setLoading(true);
     try {
       await signIn(email, senha);
-    } catch {
-      setErros({ email: 'Não foi possível entrar. Tente novamente.' });
+    } catch (erro) {
+      if (erro instanceof ApiError) {
+        setErros({
+          email:
+            erro.status === 401
+              ? 'E-mail ou senha incorretos.'
+              : erro.message,
+        });
+      } else {
+        setErros({
+          email: 'Não foi possível entrar. Verifique sua conexão.',
+        });
+      }
     } finally {
       setLoading(false);
     }

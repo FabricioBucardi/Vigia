@@ -19,8 +19,13 @@ import { useAuth } from '../../context/AuthContext';
 import {
   SUBCATEGORIAS_SEGURANCA,
   SUBCATEGORIAS_INSEGURANCA,
+  rotuloSubcategoria,
 } from '../../data';
-import type { AvaliacaoGravidade, TipoCategoriaReporte } from '../../types/report';
+import type {
+  AvaliacaoGravidade,
+  TipoCategoriaReporte,
+  TipoSubcategoriaReporte,
+} from '../../types/report';
 import type { MainStackParamList } from '../../navigation/MainStack';
 import FloatingTextInput from '../../components/FloatingTextInput';
 import PrimaryButton from '../../components/PrimaryButton';
@@ -37,7 +42,7 @@ export default function CriarReporteScreen() {
   const [campoFocado, setCampoFocado] = useState<'titulo' | 'descricao' | null>(null);
 
   const [tipoCategoria, setTipoCategoria] = useState<TipoCategoriaReporte>('Insegurança');
-  const [tipoSubcategoria, setTipoSubcategoria] = useState<string>(
+  const [tipoSubcategoria, setTipoSubcategoria] = useState<TipoSubcategoriaReporte>(
     SUBCATEGORIAS_INSEGURANCA[0],
   );
   const [avaliacaoGravidade, setAvaliacaoGravidade] = useState<AvaliacaoGravidade>(3);
@@ -109,7 +114,7 @@ export default function CriarReporteScreen() {
       longitude: -46.5645 + (Math.random() - 0.5) * 0.01,
       endereco: 'Centro, São Caetano do Sul - SP',
       tipoCategoria,
-      tipoSubcategoria: tipoSubcategoria as any,
+      tipoSubcategoria,
       avaliacaoGravidade,
       bairroNome: 'Centro',
     });
@@ -208,7 +213,7 @@ export default function CriarReporteScreen() {
                     tipoSubcategoria === sub && styles.chipTextoAtivo,
                   ]}
                 >
-                  {sub}
+                  {rotuloSubcategoria(sub)}
                 </Text>
               </Pressable>
             ))}

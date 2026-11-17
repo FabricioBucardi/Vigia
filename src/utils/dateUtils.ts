@@ -8,6 +8,11 @@ export function aplicarMascaraData(texto: string): string {
   return partes.join('/');
 }
 
+export function converterDataParaIso(data: string): string {
+  const [dia, mes, ano] = data.split('/');
+  return `${ano}-${mes}-${dia}`;
+}
+
 export function dataCoerente(data: string): boolean {
   if (data.length !== 10) return false;
   const [dia, mes, ano] = data.split('/').map(Number);
@@ -31,5 +36,5 @@ export function dataCoerente(data: string): boolean {
     idade--;
   }
 
-  return idade >= 12 && idade <= 120;
+  return idade >= 13 && idade <= 120;
 }

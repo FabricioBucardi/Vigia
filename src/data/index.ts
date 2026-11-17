@@ -2,22 +2,40 @@ import mockReports from './mockReports.json';
 import mockBairros from './mockBairros.json';
 import type { Reporte } from '../types/report';
 import type { Bairro } from '../types/bairro';
-import type { SubcategoriaSeguranca, SubcategoriaInseguranca } from '../types/report';
+import type { SubcategoriaSeguranca, SubcategoriaInseguranca, TipoSubcategoriaReporte } from '../types/report';
 
 export const reportes: Reporte[] = mockReports as Reporte[];
 export const bairros: Bairro[] = mockBairros as Bairro[];
 
 export const SUBCATEGORIAS_SEGURANCA: readonly SubcategoriaSeguranca[] = [
-  'Presença Policial',
-  'Boa Iluminação',
-  'Câmeras de Segurança',
-  'Área Segura',
+  'PRESENCA_POLICIAL',
+  'CAMERAS',
+  'ILUMINACAO_BOA',
+  'AREA_MOVIMENTADA',
+  'COMERCIO_ATIVO',
 ] as const;
 
 export const SUBCATEGORIAS_INSEGURANCA: readonly SubcategoriaInseguranca[] = [
-  'Assalto/Roubo',
-  'Iluminação Ruim',
-  'Ponto de Drogas',
-  'Ausência de Policiamento',
-  'Atividade Suspeita',
+  'ROUBO',
+  'FURTO',
+  'VANDALISMO',
+  'ILUMINACAO_RUIM',
+  'ACIDENTE',
 ] as const;
+
+export const SUBCATEGORIA_LABELS: Record<TipoSubcategoriaReporte, string> = {
+  PRESENCA_POLICIAL: 'Presença Policial',
+  CAMERAS: 'Câmeras de Segurança',
+  ILUMINACAO_BOA: 'Boa Iluminação',
+  AREA_MOVIMENTADA: 'Área Movimentada',
+  COMERCIO_ATIVO: 'Comércio Ativo',
+  ROUBO: 'Roubo',
+  FURTO: 'Furto',
+  VANDALISMO: 'Vandalismo',
+  ILUMINACAO_RUIM: 'Iluminação Ruim',
+  ACIDENTE: 'Acidente',
+};
+
+export function rotuloSubcategoria(subcategoria: TipoSubcategoriaReporte): string {
+  return SUBCATEGORIA_LABELS[subcategoria];
+}

@@ -20,7 +20,12 @@ export default function PerfilScreen() {
       </View>
       <Text style={styles.subtitle}>Perfil do cidadão (em construção)</Text>
       <View style={styles.logoutWrapper}>
-        <PrimaryButton title="Sair da Conta" onPress={signOut} />
+        <PrimaryButton
+          title="Sair da Conta"
+          onPress={() => {
+            void signOut();
+          }}
+        />
       </View>
     </SafeAreaView>
   );

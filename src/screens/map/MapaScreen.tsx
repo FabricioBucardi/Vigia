@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, type RefObject } from 'react';
 import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { WebView, WebViewMessageEvent } from 'react-native-webview';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { COLORS } from '../../styles/colors';
@@ -98,6 +98,14 @@ const LEAFLET_HTML = `
 
     var markersLayer = L.layerGroup().addTo(map);
 
+    function sendToHost(data) {
+      if (window.ReactNativeWebView) {
+        window.ReactNativeWebView.postMessage(JSON.stringify(data));
+      } else if (window.parent !== window) {
+        window.parent.postMessage(data, '*');
+      }
+    }
+
     window.renderMarkers = function(reportsData) {
       markersLayer.clearLayers();
       if (!reportsData || !reportsData.length) return;
@@ -113,45 +121,52 @@ const LEAFLET_HTML = `
         });
         var m = L.marker([rep.latitude, rep.longitude], { icon: customIcon });
         m.on('click', function() {
-          if (window.ReactNativeWebView) {
-            window.ReactNativeWebView.postMessage(JSON.stringify({
-              type: 'MARKER_CLICK',
-              payload: { idReporte: rep.idReporte }
-            }));
-          }
+          sendToHost({
+            type: 'MARKER_CLICK',
+            payload: { idReporte: rep.idReporte }
+          });
         });
         markersLayer.addLayer(m);
       });
     };
 
-    map.on('click', function(e) {
-      if (window.ReactNativeWebView) {
-        window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'MAP_CLICK' }));
+    window.addEventListener('message', function(event) {
+      var data = event.data;
+      if (data && data.type === 'RENDER_MARKERS') {
+        window.renderMarkers(data.payload);
       }
+    });
+
+    map.on('click', function(e) {
+      sendToHost({ type: 'MAP_CLICK' });
     });
   </script>
 </body>
 </html>
 `;
 
-function WebFallback() {
+function MapaWeb({
+  iframeRef,
+  onLoad,
+}: {
+  iframeRef: RefObject<HTMLIFrameElement | null>;
+  onLoad: () => void;
+}) {
   return (
-    <SafeAreaView style={styles.webContainer}>
-      <View style={styles.webCard}>
-        <MaterialCommunityIcons
-          name="map-outline"
-          size={48}
-          color={COLORS.primary}
-        />
-        <Text style={styles.webTitulo}>Visualização de Mapa</Text>
-        <Text style={styles.webMensagem}>
-          O mapa interativo está configurado via Leaflet + OpenStreetMap.
-          Coordenadas padrão: São Caetano do Sul (-23.6182, -46.5645).
-        </Text>
-      </View>
-    </SafeAreaView>
+    <iframe
+      ref={iframeRef}
+      title="Mapa Vigia"
+      srcDoc={LEAFLET_HTML}
+      onLoad={onLoad}
+      style={{ border: 'none', width: '100%', height: '100%', flex: 1 }}
+    />
   );
 }
+
+type MensagemMapa = {
+  type?: string;
+  payload?: { idReporte?: number };
+};
 
 export default function MapaScreen() {
   const navigation = useNavigation<Nav>();
@@ -166,54 +181,78 @@ export default function MapaScreen() {
   } = useReports();
 
   const webViewRef = useRef<WebView>(null);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
 
-  const injetarMarcadores = useCallback(
-    (lista: Reporte[]) => {
-      webViewRef.current?.injectJavaScript(
-        'window.renderMarkers(' + JSON.stringify(lista) + '); true;',
+  const injetarMarcadores = useCallback((lista: Reporte[]) => {
+    if (Platform.OS === 'web') {
+      iframeRef.current?.contentWindow?.postMessage(
+        { type: 'RENDER_MARKERS', payload: lista },
+        '*',
       );
-    },
-    [],
-  );
+      return;
+    }
+    webViewRef.current?.injectJavaScript(
+      'window.renderMarkers(' + JSON.stringify(lista) + '); true;',
+    );
+  }, []);
 
   useEffect(() => {
     injetarMarcadores(filteredReports);
   }, [filteredReports, injetarMarcadores]);
 
-  const handleMessage = useCallback(
-    (event: WebViewMessageEvent) => {
-      try {
-        const dados = JSON.parse(event.nativeEvent.data);
-        if (dados.type === 'MARKER_CLICK' && dados.payload?.idReporte) {
-          const encontrado = reports.find(
-            (r) => r.idReporte === dados.payload.idReporte,
-          );
-          if (encontrado) setSelectedReport(encontrado);
-        } else if (dados.type === 'MAP_CLICK') {
-          setSelectedReport(null);
-        }
-      } catch {
-        // Mensagem não é JSON válido, ignorar
+  const processarMensagem = useCallback(
+    (dados: MensagemMapa) => {
+      if (dados?.type === 'MARKER_CLICK' && dados.payload?.idReporte) {
+        const encontrado = reports.find(
+          (r) => r.idReporte === dados.payload?.idReporte,
+        );
+        if (encontrado) setSelectedReport(encontrado);
+      } else if (dados?.type === 'MAP_CLICK') {
+        setSelectedReport(null);
       }
     },
     [reports, setSelectedReport],
   );
 
-  if (Platform.OS === 'web') {
-    return <WebFallback />;
-  }
+  const handleMessage = useCallback(
+    (event: WebViewMessageEvent) => {
+      try {
+        processarMensagem(JSON.parse(event.nativeEvent.data));
+      } catch {
+        // Mensagem não é JSON válido, ignorar
+      }
+    },
+    [processarMensagem],
+  );
+
+  useEffect(() => {
+    if (Platform.OS !== 'web') return;
+    const handler = (event: MessageEvent) => {
+      if (event.source !== iframeRef.current?.contentWindow) return;
+      processarMensagem(event.data as MensagemMapa);
+    };
+    window.addEventListener('message', handler);
+    return () => window.removeEventListener('message', handler);
+  }, [processarMensagem]);
 
   return (
     <View style={styles.container}>
-      <WebView
-        ref={webViewRef}
-        source={{ html: LEAFLET_HTML }}
-        style={styles.map}
-        javaScriptEnabled
-        domStorageEnabled
-        originWhitelist={['*']}
-        onMessage={handleMessage}
-      />
+      {Platform.OS === 'web' ? (
+        <MapaWeb
+          iframeRef={iframeRef}
+          onLoad={() => injetarMarcadores(filteredReports)}
+        />
+      ) : (
+        <WebView
+          ref={webViewRef}
+          source={{ html: LEAFLET_HTML }}
+          style={styles.map}
+          javaScriptEnabled
+          domStorageEnabled
+          originWhitelist={['*']}
+          onMessage={handleMessage}
+        />
+      )}
 
       <View style={[styles.filtrosContainer, { top: insets.top + 12 }]}>
         {FILTROS.map((f) => {
@@ -303,36 +342,6 @@ const styles = StyleSheet.create({
   },
   chipTextoInativo: {
     color: COLORS.textDark,
-  },
-  webContainer: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 24,
-  },
-  webCard: {
-    backgroundColor: COLORS.surface,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    padding: 32,
-    alignItems: 'center',
-    maxWidth: 400,
-    width: '100%',
-  },
-  webTitulo: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: COLORS.primary,
-    marginTop: 16,
-    marginBottom: 12,
-  },
-  webMensagem: {
-    fontSize: 14,
-    color: COLORS.textLight,
-    textAlign: 'center',
-    lineHeight: 20,
   },
   fab: {
     position: 'absolute',

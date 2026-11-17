@@ -9,6 +9,7 @@ import Animated, {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { COLORS } from '../styles/colors';
+import { rotuloSubcategoria } from '../data';
 import type { Reporte } from '../types/report';
 
 type ReportDetailCardProps = {
@@ -70,7 +71,7 @@ export default function ReportDetailCard({
           >
             <Text style={styles.badgeTexto}>{report.tipoCategoria}</Text>
           </View>
-          <Text style={styles.subcategoria}>{report.tipoSubcategoria}</Text>
+          <Text style={styles.subcategoria}>{rotuloSubcategoria(report.tipoSubcategoria)}</Text>
         </View>
         <Pressable
           onPress={onClose}

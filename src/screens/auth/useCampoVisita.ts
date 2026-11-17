@@ -1,6 +1,11 @@
 import { useState } from 'react';
 
-export type CampoVisita = 'nome' | 'email' | 'data' | 'confirmar';
+export type CampoVisita =
+  | 'nome'
+  | 'email'
+  | 'telefone'
+  | 'data'
+  | 'confirmar';
 
 function useCampoVisita() {
   const [tocados, setTocados] = useState<Partial<Record<CampoVisita, boolean>>>({});
