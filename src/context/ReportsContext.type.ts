@@ -1,8 +1,6 @@
-import type { Reporte } from '../types/report';
+import type { NovoReporteInput, Reporte } from '../types/report';
 
 export type FiltroTipoReporte = 'Todos' | 'Segurança' | 'Insegurança';
-
-export type NovoReporteInput = Omit<Reporte, 'idReporte' | 'dataReporte'>;
 
 export type ReportsContextData = {
   reports: Reporte[];
@@ -11,5 +9,8 @@ export type ReportsContextData = {
   setFiltroAtivo: (filtro: FiltroTipoReporte) => void;
   selectedReport: Reporte | null;
   setSelectedReport: (report: Reporte | null) => void;
-  adicionarReporte: (dados: NovoReporteInput) => Reporte;
+  isLoading: boolean;
+  erro: string | null;
+  recarregarReportes: () => Promise<void>;
+  adicionarReporte: (dados: NovoReporteInput) => Promise<Reporte>;
 };

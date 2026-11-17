@@ -2,6 +2,8 @@
 
 Este documento contém a especificação técnica detalhada para o desenvolvimento das telas do MVP do aplicativo **Vigia** (React Native / Expo). Ele foi estruturado sob a metodologia **Spec-Driven Development (SDD)**, utilizando os requisitos, casos de uso e regras de negócio extraídos diretamente do relatório do projeto.
 
+> **Nota de estado (16/11/2026)**: a integração com a API real (`GET/POST /api/reportes`) está ativa. O contrato atual não expõe `avaliacaoGravidade`, `endereco` nem `bairroNome`; por isso a UI do MVP mostra as coordenadas (`latitude`/`longitude`) e não exibe estrelas/endereço. A localização do novo reporte é fixa no centro de São Caetano do Sul. Reintegrar esses campos quando o backend evoluir (avaliação/gravidade, geocodificação reversa/endereço e seleção de ponto no mapa).
+
 ---
 
 ## Como usar este documento com o OpenCode:

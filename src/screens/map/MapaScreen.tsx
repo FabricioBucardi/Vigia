@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, type RefObject } from 'react';
-import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { WebView, WebViewMessageEvent } from 'react-native-webview';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -178,6 +178,9 @@ export default function MapaScreen() {
     setFiltroAtivo,
     selectedReport,
     setSelectedReport,
+    isLoading,
+    erro,
+    recarregarReportes,
   } = useReports();
 
   const webViewRef = useRef<WebView>(null);
@@ -283,6 +286,31 @@ export default function MapaScreen() {
         })}
       </View>
 
+      {(isLoading || erro) && (
+        <Pressable
+          style={[styles.aviso, { top: insets.top + 56 }]}
+          onPress={() => {
+            if (erro && !isLoading) void recarregarReportes();
+          }}
+          disabled={isLoading || !erro}
+        >
+          {isLoading ? (
+            <ActivityIndicator size="small" color={COLORS.primary} />
+          ) : (
+            <MaterialCommunityIcons
+              name="alert-circle-outline"
+              size={18}
+              color={COLORS.danger}
+            />
+          )}
+          <Text style={styles.avisoTexto}>
+            {isLoading
+              ? 'Carregando reportes...'
+              : `${erro} Toque para tentar novamente.`}
+          </Text>
+        </Pressable>
+      )}
+
       <ReportDetailCard
         report={selectedReport}
         onClose={() => setSelectedReport(null)}
@@ -341,6 +369,31 @@ const styles = StyleSheet.create({
     color: COLORS.surface,
   },
   chipTextoInativo: {
+    color: COLORS.textDark,
+  },
+  aviso: {
+    position: 'absolute',
+    left: 16,
+    right: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: COLORS.surface,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    zIndex: 9,
+  },
+  avisoTexto: {
+    flex: 1,
+    fontSize: 13,
     color: COLORS.textDark,
   },
   fab: {

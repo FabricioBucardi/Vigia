@@ -93,28 +93,9 @@ export default function ReportDetailCard({
           size={13}
           color={COLORS.textLight}
         />
-        <Text style={styles.endereco}>{report.endereco}</Text>
-      </View>
-
-      <View style={styles.linhaEstrelas}>
-        <Text style={styles.rotuloEstrelas}>
-          {isSeguranca ? 'Nível de Proteção' : 'Nível de Gravidade'}
+        <Text style={styles.endereco}>
+          {report.latitude.toFixed(5)}, {report.longitude.toFixed(5)}
         </Text>
-        <View style={styles.estrelasGrupo}>
-          {[1, 2, 3, 4, 5].map((i) => (
-            <MaterialCommunityIcons
-              key={i}
-              name={i <= report.avaliacaoGravidade ? 'star' : 'star-outline'}
-              size={18}
-              color={
-                i <= report.avaliacaoGravidade ? corCategoria : COLORS.border
-              }
-            />
-          ))}
-          <Text style={styles.notaNumerica}>
-            {'(' + report.avaliacaoGravidade + '/5)'}
-          </Text>
-        </View>
       </View>
 
       <Text style={styles.descricao}>{report.descricao}</Text>
@@ -185,27 +166,6 @@ const styles = StyleSheet.create({
   endereco: {
     fontSize: 13,
     color: COLORS.textLight,
-  },
-  linhaEstrelas: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 10,
-  },
-  rotuloEstrelas: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: COLORS.textLight,
-  },
-  estrelasGrupo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 2,
-  },
-  notaNumerica: {
-    fontSize: 12,
-    color: COLORS.textLight,
-    marginLeft: 4,
   },
   descricao: {
     fontSize: 14,

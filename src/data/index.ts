@@ -1,10 +1,7 @@
-import mockReports from './mockReports.json';
 import mockBairros from './mockBairros.json';
-import type { Reporte } from '../types/report';
 import type { Bairro } from '../types/bairro';
 import type { SubcategoriaSeguranca, SubcategoriaInseguranca, TipoSubcategoriaReporte } from '../types/report';
 
-export const reportes: Reporte[] = mockReports as Reporte[];
 export const bairros: Bairro[] = mockBairros as Bairro[];
 
 export const SUBCATEGORIAS_SEGURANCA: readonly SubcategoriaSeguranca[] = [

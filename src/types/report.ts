@@ -18,8 +18,6 @@ export type TipoSubcategoriaReporte =
   | SubcategoriaSeguranca
   | SubcategoriaInseguranca;
 
-export type AvaliacaoGravidade = 1 | 2 | 3 | 4 | 5;
-
 export type Reporte = {
   idReporte: number;
   idUsuario: number;
@@ -28,10 +26,16 @@ export type Reporte = {
   descricao: string;
   latitude: number;
   longitude: number;
-  endereco: string;
   tipoCategoria: TipoCategoriaReporte;
   tipoSubcategoria: TipoSubcategoriaReporte;
-  avaliacaoGravidade: AvaliacaoGravidade;
-  bairroNome: string;
   dataReporte: string;
+};
+
+export type NovoReporteInput = {
+  titulo: string;
+  descricao: string;
+  latitude: number;
+  longitude: number;
+  tipoCategoria: TipoCategoriaReporte;
+  tipoSubcategoria: TipoSubcategoriaReporte;
 };

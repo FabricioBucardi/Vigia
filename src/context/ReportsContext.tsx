@@ -1,9 +1,16 @@
-import React, { createContext, useCallback, useContext, useMemo, useState } from 'react';
-import { reportes as dadosIniciais } from '../data';
-import type { Reporte } from '../types/report';
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
+import { ApiError } from '../services/api';
+import { criarReporte, listarReportes } from '../services/reportService';
+import type { NovoReporteInput, Reporte } from '../types/report';
 import type {
   FiltroTipoReporte,
-  NovoReporteInput,
   ReportsContextData,
 } from './ReportsContext.type';
 
@@ -14,28 +21,46 @@ type ReportsProviderProps = {
 const ReportsContext = createContext<ReportsContextData | undefined>(undefined);
 
 export function ReportsProvider({ children }: ReportsProviderProps) {
-  const [reports, setReports] = useState<Reporte[]>(dadosIniciais);
+  const [reports, setReports] = useState<Reporte[]>([]);
   const [filtroAtivo, setFiltroAtivo] = useState<FiltroTipoReporte>('Todos');
   const [selectedReport, setSelectedReport] = useState<Reporte | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [erro, setErro] = useState<string | null>(null);
 
   const filteredReports = useMemo(() => {
     if (filtroAtivo === 'Todos') return reports;
     return reports.filter((r) => r.tipoCategoria === filtroAtivo);
   }, [reports, filtroAtivo]);
 
+  const recarregarReportes = useCallback(async () => {
+    setIsLoading(true);
+    setErro(null);
+
+    try {
+      const lista = await listarReportes();
+      setReports(lista);
+    } catch (e) {
+      setErro(
+        e instanceof ApiError
+          ? e.message
+          : 'Não foi possível carregar os reportes.',
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void recarregarReportes();
+  }, [recarregarReportes]);
+
   const adicionarReporte = useCallback(
-    (dados: NovoReporteInput): Reporte => {
-      const novoId =
-        reports.length > 0 ? Math.max(...reports.map((r) => r.idReporte)) + 1 : 1;
-      const novoReporte: Reporte = {
-        ...dados,
-        idReporte: novoId,
-        dataReporte: new Date().toISOString(),
-      };
-      setReports((prev) => [novoReporte, ...prev]);
-      return novoReporte;
+    async (dados: NovoReporteInput): Promise<Reporte> => {
+      const criado = await criarReporte(dados);
+      setReports((prev) => [criado, ...prev]);
+      return criado;
     },
-    [reports],
+    [],
   );
 
   const value = useMemo(
@@ -46,15 +71,19 @@ export function ReportsProvider({ children }: ReportsProviderProps) {
       setFiltroAtivo,
       selectedReport,
       setSelectedReport,
+      isLoading,
+      erro,
+      recarregarReportes,
       adicionarReporte,
     }),
     [
       reports,
       filteredReports,
       filtroAtivo,
-      setFiltroAtivo,
       selectedReport,
-      setSelectedReport,
+      isLoading,
+      erro,
+      recarregarReportes,
       adicionarReporte,
     ],
   );

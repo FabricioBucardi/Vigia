@@ -15,14 +15,13 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { COLORS } from '../../styles/colors';
 import { useReports } from '../../context/ReportsContext';
-import { useAuth } from '../../context/AuthContext';
 import {
   SUBCATEGORIAS_SEGURANCA,
   SUBCATEGORIAS_INSEGURANCA,
   rotuloSubcategoria,
 } from '../../data';
+import { ApiError } from '../../services/api';
 import type {
-  AvaliacaoGravidade,
   TipoCategoriaReporte,
   TipoSubcategoriaReporte,
 } from '../../types/report';
@@ -32,10 +31,14 @@ import PrimaryButton from '../../components/PrimaryButton';
 
 type Nav = NativeStackNavigationProp<MainStackParamList, 'CriarReporte'>;
 
+const LOCALIZACAO_PADRAO = {
+  latitude: -23.62,
+  longitude: -46.563,
+} as const;
+
 export default function CriarReporteScreen() {
   const navigation = useNavigation<Nav>();
   const { adicionarReporte } = useReports();
-  const { user } = useAuth();
   const insets = useSafeAreaInsets();
   const scrollViewRef = useRef<ScrollView>(null);
   const [tecladoAltura, setTecladoAltura] = useState(0);
@@ -45,10 +48,11 @@ export default function CriarReporteScreen() {
   const [tipoSubcategoria, setTipoSubcategoria] = useState<TipoSubcategoriaReporte>(
     SUBCATEGORIAS_INSEGURANCA[0],
   );
-  const [avaliacaoGravidade, setAvaliacaoGravidade] = useState<AvaliacaoGravidade>(3);
   const [titulo, setTitulo] = useState('');
   const [descricao, setDescricao] = useState('');
   const [erros, setErros] = useState<{ titulo?: string; descricao?: string }>({});
+  const [enviando, setEnviando] = useState(false);
+  const [erroEnvio, setErroEnvio] = useState<string | null>(null);
 
   useEffect(() => {
     const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
@@ -84,42 +88,53 @@ export default function CriarReporteScreen() {
   const subcategorias =
     tipoCategoria === 'Segurança' ? SUBCATEGORIAS_SEGURANCA : SUBCATEGORIAS_INSEGURANCA;
 
-  const rotuloEstrelas =
-    tipoCategoria === 'Segurança' ? 'Nível de Proteção' : 'Nível de Gravidade';
-
   function trocarCategoria(cat: TipoCategoriaReporte) {
     setTipoCategoria(cat);
     const subs = cat === 'Segurança' ? SUBCATEGORIAS_SEGURANCA : SUBCATEGORIAS_INSEGURANCA;
     setTipoSubcategoria(subs[0]);
-    setAvaliacaoGravidade(3);
   }
 
   function validar(): boolean {
     const novosErros: { titulo?: string; descricao?: string } = {};
-    if (!titulo.trim()) novosErros.titulo = 'Título é obrigatório';
-    if (!descricao.trim()) novosErros.descricao = 'Descrição é obrigatória';
+    const tituloLimpo = titulo.trim();
+    const descricaoLimpa = descricao.trim();
+
+    if (tituloLimpo.length < 5 || tituloLimpo.length > 30) {
+      novosErros.titulo = 'Título deve ter entre 5 e 30 caracteres.';
+    }
+    if (descricaoLimpa.length < 20 || descricaoLimpa.length > 500) {
+      novosErros.descricao = 'Descrição deve ter entre 20 e 500 caracteres.';
+    }
+
     setErros(novosErros);
     return Object.keys(novosErros).length === 0;
   }
 
-  function handleSubmit() {
-    if (!validar()) return;
+  async function handleSubmit() {
+    if (!validar() || enviando) return;
 
-    adicionarReporte({
-      idUsuario: user?.idUsuario ?? 101,
-      autorNome: user?.nome ?? 'Cidadão',
-      titulo: titulo.trim(),
-      descricao: descricao.trim(),
-      latitude: -23.6182 + (Math.random() - 0.5) * 0.01,
-      longitude: -46.5645 + (Math.random() - 0.5) * 0.01,
-      endereco: 'Centro, São Caetano do Sul - SP',
-      tipoCategoria,
-      tipoSubcategoria,
-      avaliacaoGravidade,
-      bairroNome: 'Centro',
-    });
+    setEnviando(true);
+    setErroEnvio(null);
 
-    navigation.goBack();
+    try {
+      await adicionarReporte({
+        titulo: titulo.trim(),
+        descricao: descricao.trim(),
+        latitude: LOCALIZACAO_PADRAO.latitude,
+        longitude: LOCALIZACAO_PADRAO.longitude,
+        tipoCategoria,
+        tipoSubcategoria,
+      });
+      navigation.goBack();
+    } catch (erro) {
+      setErroEnvio(
+        erro instanceof ApiError
+          ? erro.message
+          : 'Não foi possível publicar a ocorrência. Tente novamente.',
+      );
+    } finally {
+      setEnviando(false);
+    }
   }
 
   return (
@@ -219,31 +234,16 @@ export default function CriarReporteScreen() {
             ))}
           </View>
 
-          <Text style={styles.secao}>{rotuloEstrelas}</Text>
-          <View style={styles.estrelasRow}>
-            {[1, 2, 3, 4, 5].map((i) => (
-              <Pressable key={i} onPress={() => setAvaliacaoGravidade(i as AvaliacaoGravidade)}>
-                <MaterialCommunityIcons
-                  name={i <= avaliacaoGravidade ? 'star' : 'star-outline'}
-                  size={32}
-                  color={
-                    i <= avaliacaoGravidade
-                      ? tipoCategoria === 'Segurança'
-                        ? COLORS.success
-                        : COLORS.danger
-                      : COLORS.border
-                  }
-                />
-              </Pressable>
-            ))}
-          </View>
-
           <FloatingTextInput
             label="Título da ocorrência"
             value={titulo}
             onChangeText={setTitulo}
+            maxLength={30}
             error={erros.titulo}
-            onClearError={() => setErros((e) => ({ ...e, titulo: undefined }))}
+            onClearError={() => {
+              setErros((e) => ({ ...e, titulo: undefined }));
+              if (erroEnvio) setErroEnvio(null);
+            }}
             onFocus={() => setCampoFocado('titulo')}
           />
 
@@ -253,10 +253,12 @@ export default function CriarReporteScreen() {
             onChangeText={(t) => {
               setDescricao(t);
               if (erros.descricao) setErros((e) => ({ ...e, descricao: undefined }));
+              if (erroEnvio) setErroEnvio(null);
             }}
             onFocus={() => setCampoFocado('descricao')}
             multiline
             numberOfLines={4}
+            maxLength={500}
             placeholder="Descreva o que aconteceu..."
             placeholderTextColor={COLORS.textLight}
             style={[styles.textArea, erros.descricao && styles.textAreaErro]}
@@ -265,10 +267,21 @@ export default function CriarReporteScreen() {
 
           <View style={styles.localizacaoCard}>
             <MaterialCommunityIcons name="map-marker-outline" size={20} color={COLORS.primary} />
-            <Text style={styles.localizacaoTexto}>Centro, São Caetano do Sul - SP</Text>
+            <Text style={styles.localizacaoTexto}>
+              Centro de São Caetano do Sul ({LOCALIZACAO_PADRAO.latitude.toFixed(5)},{' '}
+              {LOCALIZACAO_PADRAO.longitude.toFixed(5)})
+            </Text>
           </View>
 
-          <PrimaryButton title="Publicar Ocorrência" onPress={handleSubmit} />
+          {erroEnvio ? <Text style={styles.erroEnvio}>{erroEnvio}</Text> : null}
+
+          <PrimaryButton
+            title="Publicar Ocorrência"
+            onPress={() => {
+              void handleSubmit();
+            }}
+            loading={enviando}
+          />
         </ScrollView>
     </View>
   );
@@ -358,10 +371,11 @@ const styles = StyleSheet.create({
   chipTextoAtivo: {
     color: COLORS.surface,
   },
-  estrelasRow: {
-    flexDirection: 'row',
-    gap: 8,
-    marginBottom: 16,
+  erroEnvio: {
+    color: COLORS.danger,
+    fontSize: 13,
+    textAlign: 'center',
+    marginBottom: 12,
   },
   label: {
     fontSize: 14,
