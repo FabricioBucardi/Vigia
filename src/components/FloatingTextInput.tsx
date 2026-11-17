@@ -17,7 +17,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { COLORS } from '../styles/colors';
-import { FONT_SIZE, FONT_WEIGHT, LAYOUT, RADIUS, SPACING } from '../styles/tokens';
+import { FONT_SIZE, FONT_WEIGHT, ICON_SIZE, LAYOUT, RADIUS, SPACING } from '../styles/tokens';
 
 type FloatingLabelProps = {
   label: string;
@@ -148,7 +148,7 @@ export default function FloatingTextInput({
           <Pressable onPress={() => setHidden((h) => !h)} style={styles.olho}>
             <MaterialCommunityIcons
               name={hidden ? 'eye-off' : 'eye'}
-              size={24}
+              size={ICON_SIZE.lg}
               color={COLORS.textLight}
             />
           </Pressable>

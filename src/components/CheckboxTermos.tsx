@@ -1,7 +1,7 @@
 import { Pressable, StyleSheet, Text } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { COLORS } from '../styles/colors';
-import { FONT_SIZE, SPACING } from '../styles/tokens';
+import { FONT_SIZE, ICON_SIZE, SPACING } from '../styles/tokens';
 
 type CheckboxTermosProps = {
   aceito: boolean;
@@ -19,7 +19,7 @@ export default function CheckboxTermos({ aceito, onChange }: CheckboxTermosProps
     >
       <MaterialCommunityIcons
         name={aceito ? 'checkbox-marked' : 'checkbox-blank-outline'}
-        size={20}
+        size={ICON_SIZE.md}
         color={aceito ? COLORS.primary : COLORS.textLight}
       />
       <Text style={styles.termosTexto}>

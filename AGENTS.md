@@ -55,7 +55,7 @@ vigia-app/
 │   │   ├── map/             # MapaScreen, CriarReporteScreen, DetalheBairroScreen
 │   │   └── profile/         # PerfilScreen
 │   ├── services/            # Camada de requisições (futura: api, reportService)
-│   └── styles/              # colors.ts (paleta MD3) e estilos compartilhados
+│   └── styles/              # colors.ts (paleta MD3), tokens.ts (espaço/tipografia/sombras) e estilos compartilhados
 ├── App.tsx                  # Ponto de entrada
 ├── AGENTS.md                # Regras persistentes para IA (lido automaticamente na raiz)
 ├── app.json                 # Configurações do Expo
@@ -76,6 +76,20 @@ Centralizada em `src/styles/colors.ts`. Usar sempre as variáveis, nunca hex sol
 - `textLight` `#6B7280`, `border` `#D1D5DB`
 
 > ✅ **Paleta DEFINIDA pelo usuário** (após rodada de testes em 01/09): os valores acima são a versão FINAL e oficial. Alterações de cor só devem ser feitas sob pedido explícito do usuário.
+
+## 📐 Design Tokens (obrigatório)
+
+Todos os valores visuais compartilhados ficam em `src/styles/tokens.ts`:
+- `SPACING` para margins, paddings e gaps (grid 4/8, com `hairline: 2`).
+- `LAYOUT` para medidas semânticas (padding de tela/header/card/campo, touch target, FAB, logo etc.).
+- `RADIUS`, `FONT_SIZE`, `FONT_WEIGHT`, `ICON_SIZE` e `SHADOWS` para o restante.
+
+Regras:
+- **Nunca** usar números soltos em `margin*`, `padding*`, `gap`, `borderRadius`, `fontSize`, `size` de ícone ou blocos de sombra.
+- Usar `COLORS` para cores; tokens para todo o resto.
+- Exceções permitidas: HTML/Leaflet (`srcDoc`), cálculos de `insets`, `0`/`StyleSheet.absoluteFill`, `borderWidth: 1`, `zIndex` e `opacity`.
+- Novos componentes já devem nascer com tokens — não criar constantes locais duplicadas.
+- Ao alterar tokens, rodar `npm run typecheck` e revisar visualmente as telas afetadas.
 
 ## 📂 Documentos de Referência (em `docs/`)
 

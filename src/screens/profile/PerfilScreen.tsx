@@ -3,6 +3,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../../context/AuthContext';
 import PrimaryButton from '../../components/PrimaryButton';
 import { COLORS } from '../../styles/colors';
+import { FONT_SIZE, FONT_WEIGHT, LAYOUT, SPACING } from '../../styles/tokens';
 
 export default function PerfilScreen() {
   const { user, signOut } = useAuth();
@@ -37,31 +38,31 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.background,
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 24,
+    padding: LAYOUT.screenPaddingXWide,
   },
   header: {
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: SPACING.md,
   },
   title: {
-    fontSize: 28,
-    fontWeight: 'bold',
+    fontSize: FONT_SIZE.display,
+    fontWeight: FONT_WEIGHT.bold,
     color: COLORS.primary,
   },
   userInfo: {
-    fontSize: 15,
+    fontSize: FONT_SIZE.bodyLg,
     color: COLORS.textDark,
-    marginTop: 8,
+    marginTop: SPACING.sm,
     textAlign: 'center',
   },
   subtitle: {
-    fontSize: 15,
+    fontSize: FONT_SIZE.bodyLg,
     color: COLORS.textLight,
-    marginTop: 8,
+    marginTop: SPACING.sm,
   },
   logoutWrapper: {
-    marginTop: 32,
+    marginTop: SPACING.xxxl,
     width: '100%',
-    maxWidth: 320,
+    maxWidth: LAYOUT.contentMaxWidth,
   },
 });

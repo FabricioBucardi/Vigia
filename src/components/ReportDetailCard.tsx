@@ -76,11 +76,11 @@ export default function ReportDetailCard({
         </View>
         <Pressable
           onPress={onClose}
-          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+          hitSlop={{ top: SPACING.md, bottom: SPACING.md, left: SPACING.md, right: SPACING.md }}
         >
           <MaterialCommunityIcons
             name="close"
-            size={22}
+            size={ICON_SIZE.lg}
             color={COLORS.textLight}
           />
         </Pressable>
@@ -101,73 +101,69 @@ export default function ReportDetailCard({
 const styles = StyleSheet.create({
   card: {
     position: 'absolute',
-    bottom: 16,
-    left: 16,
-    right: 16,
+    bottom: SPACING.lg,
+    left: SPACING.lg,
+    right: SPACING.lg,
     backgroundColor: COLORS.surface,
-    borderRadius: 16,
+    borderRadius: RADIUS.lg,
     borderWidth: 1,
     borderColor: COLORS.border,
-    padding: 16,
-    elevation: 6,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
+    padding: LAYOUT.cardPadding,
+    ...SHADOWS.lg,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 10,
+    marginBottom: LAYOUT.infoGap,
   },
   headerLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: SPACING.sm,
   },
   badge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
+    paddingHorizontal: LAYOUT.badgePaddingX,
+    paddingVertical: LAYOUT.badgePaddingY,
+    borderRadius: RADIUS.md,
   },
   badgeTexto: {
     color: COLORS.surface,
-    fontSize: 11,
-    fontWeight: '700',
+    fontSize: FONT_SIZE.micro,
+    fontWeight: FONT_WEIGHT.bold,
   },
   subcategoria: {
-    fontSize: 13,
-    fontWeight: '600',
+    fontSize: FONT_SIZE.label,
+    fontWeight: FONT_WEIGHT.semibold,
     color: COLORS.textDark,
   },
   titulo: {
-    fontSize: 18,
-    fontWeight: '700',
+    fontSize: FONT_SIZE.title,
+    fontWeight: FONT_WEIGHT.bold,
     color: COLORS.textDark,
-    marginBottom: 6,
+    marginBottom: LAYOUT.titleGap,
   },
   descricao: {
-    fontSize: 14,
+    fontSize: FONT_SIZE.body,
     color: COLORS.textDark,
-    lineHeight: 20,
-    marginBottom: 12,
+    lineHeight: SPACING.xl,
+    marginBottom: SPACING.md,
   },
   footer: {
     flexDirection: 'column',
-    gap: 2,
-    marginTop: 12,
-    paddingTop: 8,
+    gap: SPACING.hairline,
+    marginTop: SPACING.md,
+    paddingTop: SPACING.sm,
     borderTopWidth: 1,
     borderTopColor: COLORS.border,
   },
   footerAutor: {
-    fontSize: 12,
-    fontWeight: '500',
+    fontSize: FONT_SIZE.caption,
+    fontWeight: FONT_WEIGHT.medium,
     color: COLORS.textLight,
   },
   footerData: {
-    fontSize: 11,
+    fontSize: FONT_SIZE.micro,
     color: COLORS.textLight,
   },
 });
